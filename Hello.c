@@ -1,4 +1,4 @@
-#include <starpu.h>
+#include "starpu.h"
 
 
 void cpu_func(void *buffers[], void *cl_arg)
