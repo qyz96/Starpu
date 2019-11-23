@@ -11,7 +11,7 @@ struct starpu_codelet cl =
 };
 
 
-int main(int argc, char **argv)
+int main()
 {
     /* initialize StarPU */
     starpu_init(NULL);
