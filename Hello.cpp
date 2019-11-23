@@ -1,4 +1,9 @@
 #include <starpu.h>
+#include <cblas.h>
+#include <lapacke.h>
+#include <Eigen/Core>
+#include <Eigen/Cholesky>
+
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
@@ -10,7 +15,7 @@ struct starpu_codelet cl =
     .nbuffers = 0
 };
 
-
+//Test
 int main()
 {
     /* initialize StarPU */
