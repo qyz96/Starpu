@@ -39,7 +39,7 @@ void test(void *buffers[], void *cl_arg)
 //Test
 int main()
 {
-    int n;
+    int n=4;
     int nb=4;
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
     MatrixXd* A;
@@ -49,7 +49,6 @@ int main()
     starpu_data_set_user_data(spu_T, (void*)A);
     starpu_codelet cl;
 	starpu_codelet_init(&cl);
-    *n=4;
 	cl.cpu_funcs     [0] = test;
 	cl.cpu_funcs_name[0] = "test";
 	cl.nbuffers          = 1;
