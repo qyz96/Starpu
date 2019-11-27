@@ -4,7 +4,8 @@
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
 
-
+using namespace std;
+using namespace Eigen;
 
 
 
