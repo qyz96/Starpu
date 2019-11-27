@@ -33,7 +33,7 @@ void test(void *buffers[], void *cl_arg)
 
 
 	// all the std::vector have to have the same size
-	cout<<A->size()<<"\n";
+	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
 }
 
 //Test
@@ -42,7 +42,8 @@ int main()
     int n=4;
     int nb=4;
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
-    MatrixXd B=MatrixXd::NullaryExpr(nb,nb, val);
+    MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
+    MatrixXd C=B;
     MatrixXd* A=&B;
     cout<<A->size()<<"\n";
     starpu_data_handle_t spu_T;
@@ -63,5 +64,15 @@ int main()
 
     /* terminate StarPU */
     starpu_shutdown();
+
+    auto L1=A->triangularView<Lower>();
+
+    VectorXd x = VectorXd::Random(n * nb);
+    VectorXd b = C*x;
+    VectorXd bref = b;
+    L1.solveInPlace(b);
+    L1.transpose().solveInPlace(b);
+    double error = (b - x).norm() / x.norm();
+    cout << "Error solve: " << error << endl;
     return 0;
 }
