@@ -5,37 +5,7 @@
 #include <Eigen/Cholesky>
 
 
-void potrf(void *buffers[], void *cl_arg) { LOG_TIMER("potrf"); }
-struct starpu_codelet potrf_cl = {
-    .where = STARPU_CPU,
-    .cpu_funcs = { potrf, NULL },
-    .nbuffers = 1,
-    .modes = { STARPU_RW }
-};
 
-void trsm(void *buffers[], void *cl_arg) { LOG_TIMER("trsm"); }
-struct starpu_codelet trsm_cl = {
-    .where = STARPU_CPU,
-    .cpu_funcs = { trsm, NULL },
-    .nbuffers = 2,
-    .modes = { STARPU_R, STARPU_RW }
-};
-
-void syrk(void *buffers[], void *cl_arg) { LOG_TIMER("syrk"); }
-struct starpu_codelet syrk_cl = {
-    .where = STARPU_CPU,
-    .cpu_funcs = { syrk, NULL },
-    .nbuffers = 2,
-    .modes = { STARPU_R, STARPU_RW }
-};
-
-void gemm(void *buffers[], void *cl_arg) { LOG_TIMER("gemm"); }
-struct starpu_codelet gemm_cl = {
-    .where = STARPU_CPU,
-    .cpu_funcs = { gemm, NULL },
-    .nbuffers = 3,
-    .modes = { STARPU_R, STARPU_R, STARPU_RW }
-};
 
 
 void cpu_func(void *buffers[], void *cl_arg)
