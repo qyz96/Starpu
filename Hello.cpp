@@ -46,7 +46,7 @@ int main()
     *A = MatrixXd::NullaryExpr(n*nb,n*nb, val);
     starpu_data_handle_t spu_T;
     starpu_vector_data_register(&spu_T, STARPU_MAIN_RAM, (uintptr_t)A->data(), n, sizeof(double));
-    starpu_data_set_user_data(spu_vec_A, (void*)A);
+    starpu_data_set_user_data(spu_T, (void*)A);
     starpu_codelet cl;
 	starpu_codelet_init(&cl);
 	cl.cpu_funcs     [0] = test;
