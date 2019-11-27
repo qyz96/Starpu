@@ -24,7 +24,7 @@ void test(void *buffers[], void *cl_arg)
 {
 	// get the current task
 	auto task = starpu_task_get_current();
-    int* ss=n;
+    //int* ss=n;
 	// get the user data (pointers to the vec_A, vec_B, vec_C std::vector)
 	auto u_data0 = starpu_data_get_user_data(task->handles[0]); assert(u_data0);
 
@@ -55,8 +55,8 @@ int main()
 	cl.nbuffers          = 1;
 	cl.modes         [0] = STARPU_RW;
 	cl.name              = "potrf";
-    cl.cl_arg=n;
-    cl.cl_arg_size=sizeof(int);
+    //cl.cl_arg=n;
+    //cl.cl_arg_size=sizeof(int);
     /* initialize StarPU */
     starpu_init(NULL);
     starpu_task_insert(&cl, STARPU_RW, spu_T, 0);
