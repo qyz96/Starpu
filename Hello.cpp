@@ -45,23 +45,6 @@ int main()
     MatrixXd* A;
     *A = MatrixXd::NullaryExpr(nb,nb, val);
     cout<<A->size()<<"\n";
-    starpu_data_handle_t spu_T;
-    starpu_vector_data_register(&spu_T, STARPU_MAIN_RAM, (uintptr_t)A->data(), n, sizeof(double));
-    starpu_data_set_user_data(spu_T, (void*)A);
-    starpu_codelet cl;
-	starpu_codelet_init(&cl);
-	cl.cpu_funcs     [0] = test;
-	cl.cpu_funcs_name[0] = "test";
-	cl.nbuffers          = 1;
-	cl.modes         [0] = STARPU_RW;
-	cl.name              = "potrf";
-    //cl.cl_arg=n;
-    //cl.cl_arg_size=sizeof(int);
-    /* initialize StarPU */
-    starpu_init(NULL);
-    starpu_task_insert(&cl, STARPU_RW, spu_T, 0);
-
-    /* terminate StarPU */
-    starpu_shutdown();
+    
     return 0;
 }
