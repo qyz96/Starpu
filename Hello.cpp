@@ -44,6 +44,7 @@ int main()
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
     MatrixXd* A;
     *A = MatrixXd::NullaryExpr(nb,nb, val);
+    cout<<A->size()<<"\n";
     starpu_data_handle_t spu_T;
     starpu_vector_data_register(&spu_T, STARPU_MAIN_RAM, (uintptr_t)A->data(), n, sizeof(double));
     starpu_data_set_user_data(spu_T, (void*)A);
