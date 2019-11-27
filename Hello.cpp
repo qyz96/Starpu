@@ -42,9 +42,9 @@ int main()
     int n=4;
     int nb=4;
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
-    MatrixXd* A;
-    *A = MatrixXd::NullaryExpr(nb,nb, val);
-    cout<<A->size()<<"\n";
+    MatrixXd A;
+    A = MatrixXd::NullaryExpr(nb,nb, val);
+    cout<<A.size()<<"\n";
     
     return 0;
 }
