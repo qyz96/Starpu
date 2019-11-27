@@ -39,7 +39,7 @@ void test(void *buffers[], void *cl_arg)
 //Test
 int main()
 {
-    int* n;
+    int n;
     int nb=4;
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
     MatrixXd* A;
