@@ -1,4 +1,5 @@
 #include <starpu.h>
+#include<iostream>
 #include <cblas.h>
 #include <lapacke.h>
 #include <Eigen/Core>
@@ -41,7 +42,7 @@ int main()
     int n=10;
     int nb=10;
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
-    MatrixXd *A;
+    MatrixXd* A;
     *A = MatrixXd::NullaryExpr(n*nb,n*nb, val);
     starpu_data_handle_t spu_T;
     starpu_vector_data_register(&spu_T, STARPU_MAIN_RAM, (uintptr_t)A->data(), n, sizeof(double));
@@ -55,7 +56,7 @@ int main()
 	cl.name              = "potrf";
     /* initialize StarPU */
     starpu_init(NULL);
-    ret = starpu_task_insert(&cl, STARPU_RW, spu_T, 0);
+    starpu_task_insert(&cl, STARPU_RW, spu_T, 0);
 
     /* terminate StarPU */
     starpu_shutdown();
