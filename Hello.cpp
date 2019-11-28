@@ -77,7 +77,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 
 //Test
-int main()
+int main(int argc, char **argv)
 {
     int n=4;
     int nb=4;
