@@ -14,7 +14,6 @@ using namespace Eigen;
 void potrf(void *buffers[], void *cl_arg) { 
 	auto task = starpu_task_get_current();
 	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
-    double *val = (double *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	auto A = static_cast<MatrixXd*>(u_data0);
     cout<<*A<<"\n";
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
@@ -96,9 +95,6 @@ int main(int argc, char **argv)
     vector<starpu_data_handle_t> dataA(nb*nb);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
-            double ij[2];
-            ij[0]=ii;
-            ij[1]=jj;
             blocs[ii+jj*nb]=new MatrixXd(n,n);
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
             //starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)ij, 2, sizeof(double));
