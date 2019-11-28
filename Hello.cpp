@@ -22,7 +22,15 @@ struct starpu_codelet potrf_cl = {
     .modes = { STARPU_RW }
 };
 
-void trsm(void *buffers[], void *cl_arg) {  }
+void trsm(void *buffers[], void *cl_arg) {
+    auto task = starpu_task_get_current();
+	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
+	auto A0 = static_cast<MatrixXd*>(u_data0);
+    auto u_data1 = starpu_data_get_user_data(task->handles[1]); 
+	auto A1 = static_cast<MatrixXd*>(u_data1);
+	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), 
+    A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
+  }
 struct starpu_codelet trsm_cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { trsm, NULL },
@@ -38,7 +46,18 @@ struct starpu_codelet syrk_cl = {
     .modes = { STARPU_R, STARPU_RW }
 };
 
-void gemm(void *buffers[], void *cl_arg) {  }
+void gemm(void *buffers[], void *cl_arg) {
+    auto task = starpu_task_get_current();
+	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
+	auto A0 = static_cast<MatrixXd*>(u_data0);
+    auto u_data1 = starpu_data_get_user_data(task->handles[1]); 
+	auto A1 = static_cast<MatrixXd*>(u_data1);
+    auto u_data2 = starpu_data_get_user_data(task->handles[2]); 
+	auto A2 = static_cast<MatrixXd*>(u_data2);
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, A0->rows(), A0->rows(), A0->rows(), 
+    -1.0,A0->data(), A0->rows(), A1->transpose().data(), A0->rows(), 1.0, 
+    A2->data(), A0->rows());
+  }
 struct starpu_codelet gemm_cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { gemm, NULL },
@@ -49,27 +68,9 @@ void cpu_func(void *buffers[], void *cl_arg)
 {
     printf("Hello world\n");
 }
-struct starpu_codelet cl =
-{
-    .cpu_funcs = { cpu_func },
-    .nbuffers = 0
-};
-
-void test(void *buffers[], void *cl_arg)
-{
-	// get the current task
-	auto task = starpu_task_get_current();
-    //int* ss=n;
-	// get the user data (pointers to the vec_A, vec_B, vec_C std::vector)
-	auto u_data0 = starpu_data_get_user_data(task->handles[0]); assert(u_data0);
-
-	// cast void* in std::vector<char>*
-	auto A = static_cast<MatrixXd*>(u_data0);
 
 
-	// all the std::vector have to have the same size
-	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
-}
+
 
 //Test
 int main()
@@ -78,32 +79,55 @@ int main()
     int nb=4;
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
-    MatrixXd C=B;
+    MatrixXd L = B;
+    vector<unique_ptr<MatrixXd>> blocs(nb*nb);
+    vector<starpu_data_handle_t> dataA(nb*nb);
+    for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+            blocs[ii+jj*nb]=make_unique<MatrixXd>(n,n);
+            *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
+            starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb]->data(), 
+            n, sizeof(double));
+            starpu_data_set_user_data(dataA[ii+jj*nb], (void*)blocs[ii+jj*nb]);
+        }
+    }
     MatrixXd* A=&B;
-    cout<<A->size()<<"\n";
-    starpu_data_handle_t spu_T;
-    starpu_vector_data_register(&spu_T, STARPU_MAIN_RAM, (uintptr_t)A->data(), n, sizeof(double));
-    starpu_data_set_user_data(spu_T, (void*)A);
-    starpu_codelet cl;
-	starpu_codelet_init(&cl);
-	cl.cpu_funcs     [0] = test;
-	cl.cpu_funcs_name[0] = "test";
-	cl.nbuffers          = 1;
-	cl.modes         [0] = STARPU_RW;
-	cl.name              = "potrf";
-    //cl.cl_arg=n;
-    //cl.cl_arg_size=sizeof(int);
-    /* initialize StarPU */
+    //cout<<A->size()<<"\n";
+ 
     starpu_init(NULL);
-    starpu_task_insert(&cl, STARPU_RW, spu_T, 0);
+    for (kk = 0; kk < nb; ++kk) {
+        starpu_insert_task(&potrf_cl,
+                           STARPU_RW, dataA[kk+kk*nb],
+                           0);
 
-    /* terminate StarPU */
+        for (ii = kk+1; ii < nb; ++ii) {
+            starpu_insert_task(&trsm_cl,
+                               STARPU_R, dataA[kk+kk*nb],
+                               STARPU_RW, dataA[ii+kk*nb],
+                               0);
+        }
+
+        for (ii=kk+1; ii < nb; ++ii) {
+            for (jj=kk+1; jj < ii; ++jj) {
+                starpu_insert_task(&gemm_cl,
+                                   STARPU_R, dataA[ii+kk*nb],
+                                   STARPU_R, dataA[jj+kk*nb],
+                                   STARPU_RW, dataA[ii+jj*nb],
+                                   0);
+            }
+        }
+    }
+
     starpu_shutdown();
-
-    auto L1=A->triangularView<Lower>();
+    for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+            L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
+        }
+    }
+    auto L1=L.triangularView<Lower>();
 
     VectorXd x = VectorXd::Random(n * nb);
-    VectorXd b = C*x;
+    VectorXd b = B*x;
     VectorXd bref = b;
     L1.solveInPlace(b);
     L1.transpose().solveInPlace(b);
