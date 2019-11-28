@@ -14,8 +14,10 @@ using namespace Eigen;
 void potrf(void *buffers[], void *cl_arg) { 
 	auto task = starpu_task_get_current();
 	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
+    double *val = (double *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	auto A = static_cast<MatrixXd*>(u_data0);
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
+    printf("Potrf %d\n", val[0]);
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
@@ -79,6 +81,14 @@ int main()
 {
     int n=4;
     int nb=4;
+    if (argc >= 2)
+    {
+        n = atoi(argv[1]);
+    }
+    if (argc >= 3)
+    {
+        nb = atoi(argv[2]);
+    }
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
@@ -86,10 +96,11 @@ int main()
     vector<starpu_data_handle_t> dataA(nb*nb);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
+            vector<double> ij{ii,jj}
             blocs[ii+jj*nb]=new MatrixXd(n,n);
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
-            starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb]->data(), 
-            n, sizeof(double));
+            starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)ij, 
+            2, sizeof(double));
             starpu_data_set_user_data(dataA[ii+jj*nb], (void*)blocs[ii+jj*nb]);
         }
     }
