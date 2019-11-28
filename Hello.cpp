@@ -82,11 +82,11 @@ int main()
     auto val = [&](int i, int j) { return 1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
-    vector<unique_ptr<MatrixXd>> blocs(nb*nb);
+    vector<MatrixXd*> blocs(nb*nb);
     vector<starpu_data_handle_t> dataA(nb*nb);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
-            blocs[ii+jj*nb]=make_unique<MatrixXd>(n,n);
+            blocs[ii+jj*nb]=new MatrixXd(n,n);
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
             starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb]->data(), 
             n, sizeof(double));
