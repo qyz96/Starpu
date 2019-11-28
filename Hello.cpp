@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     vector<starpu_data_handle_t> dataA(nb*nb);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
-            vector<double> ij{ii,jj}
+            vector<double> ij{ii,jj};
             blocs[ii+jj*nb]=new MatrixXd(n,n);
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
             starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)ij, 
