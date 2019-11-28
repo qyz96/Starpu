@@ -15,7 +15,7 @@ void potrf(void *buffers[], void *cl_arg) {
 	auto task = starpu_task_get_current();
 	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
 	auto A = static_cast<MatrixXd*>(u_data0);
-    cout<<*A<<"\n";
+    cout<<"potrf\n";
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
      }
 struct starpu_codelet potrf_cl = {
@@ -33,6 +33,7 @@ void trsm(void *buffers[], void *cl_arg) {
 	auto A1 = static_cast<MatrixXd*>(u_data1);
 	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), 
     A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
+    cout<<"trsm\n";
   }
 struct starpu_codelet trsm_cl = {
     .where = STARPU_CPU,
@@ -60,6 +61,7 @@ void gemm(void *buffers[], void *cl_arg) {
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, A0->rows(), A0->rows(), A0->rows(), 
     -1.0,A0->data(), A0->rows(), A1->transpose().data(), A0->rows(), 1.0, 
     A2->data(), A0->rows());
+    cout<<"gemm\n";
   }
 struct starpu_codelet gemm_cl = {
     .where = STARPU_CPU,
