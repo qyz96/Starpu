@@ -1,4 +1,6 @@
 #include <starpu.h>
+#include<vector>
+#include<memory>
 #include<iostream>
 #include <cblas.h>
 #include <lapacke.h>
