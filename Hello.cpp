@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     {
         nb = atoi(argv[2]);
     }
-    auto val = [&](int i, int j) { return (i == j) ? (i+10)/(float)((i-j)*(i-j)+1) : 1/(float)((i-j)*(i-j)+1); };
+    auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
     vector<MatrixXd*> blocs(nb*nb);
