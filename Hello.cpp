@@ -97,20 +97,20 @@ int main()
     //cout<<A->size()<<"\n";
  
     starpu_init(NULL);
-    for (kk = 0; kk < nb; ++kk) {
+    for (int kk = 0; kk < nb; ++kk) {
         starpu_insert_task(&potrf_cl,
                            STARPU_RW, dataA[kk+kk*nb],
                            0);
 
-        for (ii = kk+1; ii < nb; ++ii) {
+        for (int ii = kk+1; ii < nb; ++ii) {
             starpu_insert_task(&trsm_cl,
                                STARPU_R, dataA[kk+kk*nb],
                                STARPU_RW, dataA[ii+kk*nb],
                                0);
         }
 
-        for (ii=kk+1; ii < nb; ++ii) {
-            for (jj=kk+1; jj < ii; ++jj) {
+        for (int ii=kk+1; ii < nb; ++ii) {
+            for (int jj=kk+1; jj < ii; ++jj) {
                 starpu_insert_task(&gemm_cl,
                                    STARPU_R, dataA[ii+kk*nb],
                                    STARPU_R, dataA[jj+kk*nb],
