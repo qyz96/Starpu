@@ -17,7 +17,7 @@ void potrf(void *buffers[], void *cl_arg) {
     double *val = (double *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	auto A = static_cast<MatrixXd*>(u_data0);
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
-    printf("Potrf %d\n", val[0]);
+    printf("Potrf %d %d\n", val[0], val[1]);
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
