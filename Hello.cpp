@@ -103,7 +103,7 @@ int main(int argc, char **argv)
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
             starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)ij, 
             2, sizeof(double));
-            starpu_data_set_user_data(dataA[ii+jj*nb], (void*)blocs[ii+jj*nb]);
+            //starpu_data_set_user_data(dataA[ii+jj*nb], (void*)blocs[ii+jj*nb]);
         }
     }
     MatrixXd* A=&B;
