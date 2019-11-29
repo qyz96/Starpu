@@ -93,8 +93,9 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-static struct starpu_task *s_potrf(int k, starpu_data_handle_t data)
+static void s_potrf(int k, starpu_data_handle_t data)
 {
+    printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
     struct starpu_task *task = create_task(TAG11(k));
 
 	task->cl = &potrf_cl;
@@ -111,29 +112,72 @@ static struct starpu_task *s_potrf(int k, starpu_data_handle_t data)
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
     starpu_task_submit(task);
-	return task;
 }
 
-void s_trsm(int k, int i)
+static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle_t data2)
 {
-    starpu_task *task = starpu_task_create();
-	task->cl_arg = NULL;
-	task->use_tag = 1;
-	task->tag_id = TAG11(k);
+    struct starpu_task *task = create_task(TAG21(k, i));
+
+	task->cl = &trsm_cl;
+
+	/* which sub-data is manipulated ? */
+	task->handles[0] = data1;
+	task->handles[1] = data2;
+
+
+	task->priority = STARPU_MAX_PRIO;
+
+	/* enforce dependencies ... */
+	if (k > 0)
+	{
+		starpu_tag_declare_deps(TAG21(k, i), 2, TAG11(k), TAG22(k-1, k, i));
+	}
+	else
+	{
+		starpu_tag_declare_deps(TAG21(k, i), 1, TAG11(k));
+	}
+
+
+
+	int ret = starpu_task_submit(task);
 
 }
 
-void s_gemm(int k, int i, int j)
+static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_handle_t data2, starpu_data_handle_t data3)
 {
-    
+    printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); 
+
+	struct starpu_task *task = create_task(TAG22(k, i, j));
+
+	task->cl = &gemm_cl;
+
+	/* which sub-data is manipulated ? */
+	task->handles[0] = data1;
+	task->handles[1] = data2;
+	task->handles[2] = data3;
+
+	if ((i == k + 1) && (j == k + 1) )
+	{
+		task->priority = STARPU_MAX_PRIO;
+	}
+
+	/* enforce dependencies ... */
+	if (k > 0)
+	{
+		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
+	}
+	else
+	{
+		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
+	}
 }
 
 
 //Test
 int main(int argc, char **argv)
 {
-    int n=4;
-    int nb=4;
+    int n=10;
+    int nb=1;
     if (argc >= 2)
     {
         n = atoi(argv[1]);
@@ -180,27 +224,19 @@ int main(int argc, char **argv)
     }
 
     for (int kk = 0; kk < nb; ++kk) {
-        starpu_insert_task(&potrf_cl,
-                           STARPU_RW, dataA[kk+kk*nb],
-                           STARPU_TAG_ONLY, TAG11(kk),
-                           0);
+        //starpu_insert_task(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
+        s_potrf(kk, dataA[kk+kk*nb]);
 
         for (int ii = kk+1; ii < nb; ++ii) {
-            starpu_insert_task(&trsm_cl,
-                               STARPU_R, dataA[kk+kk*nb],
-                               STARPU_RW, dataA[ii+kk*nb],
-                               STARPU_TAG_ONLY, TAG21(kk,ii),
-                               0);
+            //starpu_insert_task(&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],STARPU_TAG_ONLY, TAG21(kk,ii),0);
+            s_trsm(kk,ii,dataA[kk+kk*nb],dataA[ii+kk*nb]);
         }
 
         for (int ii=kk+1; ii < nb; ++ii) {
             for (int jj=kk+1; jj < ii; ++jj) {
-                starpu_insert_task(&gemm_cl,
-                                   STARPU_R, dataA[ii+kk*nb],
-                                   STARPU_R, dataA[jj+kk*nb],
-                                   STARPU_RW, dataA[ii+jj*nb],
-                                   STARPU_TAG_ONLY, TAG22(kk,ii,jj),
-                                   0);
+                //starpu_insert_task(&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
+                s_gemm(kk,ii,jj, dataA[ii+kk*nb],dataA[jj+kk*nb], dataA[ii+jj*nb]);
+            
             }
         }
     }
