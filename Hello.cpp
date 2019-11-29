@@ -116,6 +116,7 @@ static void s_potrf(int k, starpu_data_handle_t data)
 
 static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle_t data2)
 {
+    printf("task 21 k = %d i = %d TAG = %llx\n", k, i, (TAG11(k)));
     struct starpu_task *task = create_task(TAG21(k, i));
 
 	task->cl = &trsm_cl;
