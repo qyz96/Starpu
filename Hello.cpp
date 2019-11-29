@@ -170,6 +170,7 @@ static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_
 	{
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
+    int ret = starpu_task_submit(task);
 }
 
 
@@ -204,24 +205,7 @@ int main(int argc, char **argv)
     //cout<<A->size()<<"\n";
  
     starpu_init(NULL);
-    for (int kk = 0; kk < nb; ++kk) {
-        if (kk > 0) {starpu_tag_declare_deps(TAG11(kk), 1, TAG22(kk-1, kk, kk));}
-        for (int ii = kk+1; ii < nb; ++ii) {
-            if (kk > 0) 
-            {starpu_tag_declare_deps(TAG21(kk, ii), 2, TAG11(kk), TAG22(kk-1, kk, ii));}
-	        else 
-            {starpu_tag_declare_deps(TAG21(kk, ii), 1, TAG11(kk));}   
-        }
 
-        for (int ii=kk+1; ii < nb; ++ii) {
-            for (int jj=kk+1; jj < ii; ++jj) {
-                if (kk > 0)
-	            {starpu_tag_declare_deps(TAG22(kk, ii, jj), 3, TAG22(kk-1, ii, jj), TAG21(kk, ii), TAG21(kk, jj));}
-	            else
-	            {starpu_tag_declare_deps(TAG22(kk, ii, jj), 2, TAG21(kk, ii), TAG21(kk, jj));}
-            }
-        }
-    }
 
     for (int kk = 0; kk < nb; ++kk) {
         //starpu_insert_task(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
@@ -230,13 +214,11 @@ int main(int argc, char **argv)
         for (int ii = kk+1; ii < nb; ++ii) {
             //starpu_insert_task(&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],STARPU_TAG_ONLY, TAG21(kk,ii),0);
             s_trsm(kk,ii,dataA[kk+kk*nb],dataA[ii+kk*nb]);
-        }
-
-        for (int ii=kk+1; ii < nb; ++ii) {
-            for (int jj=kk+1; jj < ii; ++jj) {
+            for (int jj=kk+1; jj < nb; ++jj) {
                 //starpu_insert_task(&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
+                if (jj <= ii) {
                 s_gemm(kk,ii,jj, dataA[ii+kk*nb],dataA[jj+kk*nb], dataA[ii+jj*nb]);
-            
+                }
             }
         }
     }
