@@ -24,7 +24,7 @@ void potrf(void *buffers[], void *cl_arg) {
 	auto task = starpu_task_get_current();
 	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
 	auto A = static_cast<MatrixXd*>(u_data0);
-    printf("POTRF:%llx \n", task->tag_id);
+    //printf("POTRF:%llx \n", task->tag_id);
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
      }
 struct starpu_codelet potrf_cl = {
@@ -42,7 +42,7 @@ void trsm(void *buffers[], void *cl_arg) {
 	auto A1 = static_cast<MatrixXd*>(u_data1);
 	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), 
     A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
-    printf("TRSM:%llx \n", task->tag_id);
+    //printf("TRSM:%llx \n", task->tag_id);
   }
 struct starpu_codelet trsm_cl = {
     .where = STARPU_CPU,
@@ -70,7 +70,7 @@ void gemm(void *buffers[], void *cl_arg) {
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, A0->rows(), A0->rows(), A0->rows(), 
     -1.0,A0->data(), A0->rows(), A1->transpose().data(), A0->rows(), 1.0, 
     A2->data(), A0->rows());
-    printf("GEMM:%llx \n", task->tag_id);
+    //printf("GEMM:%llx \n", task->tag_id);
   }
 struct starpu_codelet gemm_cl = {
     .where = STARPU_CPU,
@@ -95,7 +95,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static void s_potrf(int k, starpu_data_handle_t data)
 {
-    printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
+    //printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
     struct starpu_task *task = create_task(TAG11(k));
 
 	task->cl = &potrf_cl;
@@ -116,7 +116,7 @@ static void s_potrf(int k, starpu_data_handle_t data)
 
 static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle_t data2)
 {
-    printf("task 21 k = %d i = %d TAG = %llx\n", k, i, (TAG21(k, i)));
+    //printf("task 21 k = %d i = %d TAG = %llx\n", k, i, (TAG21(k, i)));
     struct starpu_task *task = create_task(TAG21(k, i));
 
 	task->cl = &trsm_cl;
@@ -146,7 +146,7 @@ static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle
 
 static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_handle_t data2, starpu_data_handle_t data3)
 {
-    printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); 
+    //printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); 
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
 
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
  
     starpu_init(NULL);
 
-
+    double start = starpu_timing_now();
     for (int kk = 0; kk < nb; ++kk) {
         //starpu_insert_task(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
         s_potrf(kk, dataA[kk+kk*nb]);
@@ -226,6 +226,8 @@ int main(int argc, char **argv)
     starpu_tag_wait(TAG11(nb-1));
 
     starpu_shutdown();
+    double end = starpu_timing_now();
+    printf("Elapsed time: %0.f", end-start);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
