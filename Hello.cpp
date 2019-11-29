@@ -93,7 +93,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-void s_potrf(int k, starpu_data_handle_t data)
+static struct starpu_task *s_potrf(int k, starpu_data_handle_t data)
 {
     struct starpu_task *task = create_task(TAG11(k));
 
