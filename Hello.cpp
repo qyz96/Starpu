@@ -227,7 +227,7 @@ int main(int argc, char **argv)
 
     starpu_shutdown();
     double end = starpu_timing_now();
-    printf("Elapsed time: %0.f", (end-start)/1000000);
+    printf("Elapsed time: %6.f \n", (end-start)/1000000);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
