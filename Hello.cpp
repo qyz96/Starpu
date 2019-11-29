@@ -131,7 +131,7 @@ static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG21(k, i), 2, TAG11(k), TAG22(k-1, k, i));
+		starpu_tag_declare_deps(TAG21(k, i), 2, TAG11(k), TAG22(k-1, i, k));
 	}
 	else
 	{
