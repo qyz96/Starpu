@@ -83,7 +83,50 @@ void cpu_func(void *buffers[], void *cl_arg)
     printf("Hello world\n");
 }
 
+static struct starpu_task *create_task(starpu_tag_t id)
+{
+	struct starpu_task *task = starpu_task_create();
+		task->cl_arg = NULL;
+		task->use_tag = 1;
+		task->tag_id = id;
 
+	return task;
+}
+
+void s_potrf(int k, starpu_data_handle_t data)
+{
+    struct starpu_task *task = create_task(TAG11(k));
+
+	task->cl = &potrf_cl;
+
+	/* which sub-data is manipulated ? */
+	task->handles[0] = data;
+
+	/* this is an important task */
+	task->priority = STARPU_MAX_PRIO;
+
+	/* enforce dependencies ... */
+	if (k > 0)
+	{
+		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
+	}
+    starpu_task_submit(task);
+	return task;
+}
+
+void s_trsm(int k, int i)
+{
+    starpu_task *task = starpu_task_create();
+	task->cl_arg = NULL;
+	task->use_tag = 1;
+	task->tag_id = TAG11(k);
+
+}
+
+void s_gemm(int k, int i, int j)
+{
+    
+}
 
 
 //Test
