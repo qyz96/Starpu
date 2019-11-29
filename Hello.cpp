@@ -24,7 +24,7 @@ void potrf(void *buffers[], void *cl_arg) {
 	auto task = starpu_task_get_current();
 	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
 	auto A = static_cast<MatrixXd*>(u_data0);
-    cout<<"potrf\n";
+    cout<<task->tag_id<<endl;
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
      }
 struct starpu_codelet potrf_cl = {
@@ -120,12 +120,14 @@ int main(int argc, char **argv)
     for (int kk = 0; kk < nb; ++kk) {
         starpu_insert_task(&potrf_cl,
                            STARPU_RW, dataA[kk+kk*nb],
+                           STARPU_TAG_ONLY, TAG11(kk),
                            0);
 
         for (int ii = kk+1; ii < nb; ++ii) {
             starpu_insert_task(&trsm_cl,
                                STARPU_R, dataA[kk+kk*nb],
                                STARPU_RW, dataA[ii+kk*nb],
+                               STARPU_TAG_ONLY, TAG21(kk,ii),
                                0);
         }
 
@@ -135,6 +137,7 @@ int main(int argc, char **argv)
                                    STARPU_R, dataA[ii+kk*nb],
                                    STARPU_R, dataA[jj+kk*nb],
                                    STARPU_RW, dataA[ii+jj*nb],
+                                   STARPU_TAG_ONLY, TAG22(kk,ii,jj),
                                    0);
             }
         }
