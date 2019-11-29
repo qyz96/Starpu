@@ -121,7 +121,7 @@ int main(int argc, char **argv)
         if (kk > 0) {starpu_tag_declare_deps(TAG11(kk), 1, TAG22(kk-1, kk, kk));}
         for (int ii = kk+1; ii < nb; ++ii) {
             if (kk > 0) 
-            {starpu_tag_declare_deps(TAG21(kk, ii), 2, TAG11(k), TAG22(kk-1, kk, ii));}
+            {starpu_tag_declare_deps(TAG21(kk, ii), 2, TAG11(kk), TAG22(kk-1, kk, ii));}
 	        else 
             {starpu_tag_declare_deps(TAG21(kk, ii), 1, TAG11(kk));}   
         }
