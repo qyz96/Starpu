@@ -24,7 +24,7 @@ void potrf(void *buffers[], void *cl_arg) {
 	auto task = starpu_task_get_current();
 	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
 	auto A = static_cast<MatrixXd*>(u_data0);
-    cout<<task->tag_id<<endl;
+    printf("TAGID:%llx", task->tag_id);
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
      }
 struct starpu_codelet potrf_cl = {
