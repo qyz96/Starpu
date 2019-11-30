@@ -51,7 +51,14 @@ struct starpu_codelet trsm_cl = {
     .modes = { STARPU_R, STARPU_RW }
 };
 
-void syrk(void *buffers[], void *cl_arg) {  }
+void syrk(void *buffers[], void *cl_arg) { 
+    auto task = starpu_task_get_current();
+	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
+	auto A0 = static_cast<MatrixXd*>(u_data0);
+    auto u_data1 = starpu_data_get_user_data(task->handles[1]); 
+	auto A1 = static_cast<MatrixXd*>(u_data1);
+	cblas_dsyrk(CblasColMajor, CblasLower, CblasNoTrans, A0->rows(), A0->rows(), -1.0, A0->data(), A0->rows(), 1.0, A1->data(), A0->rows());
+ }
 struct starpu_codelet syrk_cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { syrk, NULL },
@@ -149,14 +156,17 @@ static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_
     //printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); 
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
-
-	task->cl = &gemm_cl;
-
-	/* which sub-data is manipulated ? */
-	task->handles[0] = data1;
-	task->handles[1] = data2;
-	task->handles[2] = data3;
-
+    if (i==j){
+        task->cl = &syrk_cl;
+        task->handles[0] = data1;
+	    task->handles[1] = data3;
+    }
+    else {
+        task->cl = &gemm_cl;
+        task->handles[0] = data1;
+        task->handles[1] = data2;
+        task->handles[2] = data3;
+    }
 	if ((i == k + 1) && (j == k + 1) )
 	{
 		task->priority = STARPU_MAX_PRIO;
@@ -224,9 +234,8 @@ int main(int argc, char **argv)
         }
     }
     starpu_tag_wait(TAG11(nb-1));
-
-    starpu_shutdown();
     double end = starpu_timing_now();
+    starpu_shutdown();
     printf("Elapsed time: %0.4f \n", (end-start)/1000000);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
