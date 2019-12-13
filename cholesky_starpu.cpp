@@ -6,7 +6,6 @@
 #include <lapacke.h>
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
-#include <mpi.h>
 
 
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
@@ -186,7 +185,19 @@ static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_
 }
 
 
-void cholesky(int n, int nb) {
+//Test
+int main(int argc, char **argv)
+{
+    int n=10;
+    int nb=1;
+    if (argc >= 2)
+    {
+        n = atoi(argv[1]);
+    }
+    if (argc >= 3)
+    {
+        nb = atoi(argv[2]);
+    }
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
@@ -240,30 +251,5 @@ void cholesky(int n, int nb) {
     L1.transpose().solveInPlace(b);
     double error = (b - x).norm() / x.norm();
     cout << "Error solve: " << error << endl;
-}
-
-
-
-//Test
-int main(int argc, char **argv)
-{
-    int req = MPI_THREAD_FUNNELED;
-    int prov = -1;
-
-    MPI_Init_thread(NULL, NULL, req, &prov);
-
-    int n=10;
-    int nb=1;
-    if (argc >= 2)
-    {
-        n = atoi(argv[1]);
-    }
-    if (argc >= 3)
-    {
-        nb = atoi(argv[2]);
-    }
-
-    cholesky(n,nb);
-    MPI_Finalize();
     return 0;
 }
