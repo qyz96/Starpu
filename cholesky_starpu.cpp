@@ -247,6 +247,11 @@ void cholesky(int n, int nb) {
 //Test
 int main(int argc, char **argv)
 {
+    int req = MPI_THREAD_FUNNELED;
+    int prov = -1;
+
+    MPI_Init_thread(NULL, NULL, req, &prov);
+
     int n=10;
     int nb=1;
     if (argc >= 2)
@@ -259,6 +264,6 @@ int main(int argc, char **argv)
     }
 
     cholesky(n,nb);
-    
+    MPI_Finalize();
     return 0;
 }
