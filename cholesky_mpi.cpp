@@ -203,7 +203,7 @@ void cholesky(int n, int nb) {
     }
     MatrixXd* A=&B;
     //cout<<A->size()<<"\n";
- 
+    //Test
     starpu_init(NULL);
 
     double start = starpu_timing_now();
