@@ -13,5 +13,5 @@ cholesky_mpi: cholesky_mpi.cpp
         $(MPICC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LFLAGS)
 
 clean:
-      	rm -f cholesky_starpu
-        rm -f cholesky_mpi
+	rm -f cholesky_starpu
+	rm -f cholesky_mpi
