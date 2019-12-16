@@ -149,8 +149,8 @@ static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle
 
 
 
-	int ret = starpu_task_submit(task);
-
+	//int ret = starpu_task_submit(task);
+    int ret = starpu_insert_task(&trsm_cl,STARPU_R, data1,STARPU_RW, data2,STARPU_TAG_ONLY, TAG21(k,i),0);
 }
 
 static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_handle_t data2, starpu_data_handle_t data3)
@@ -209,16 +209,17 @@ void cholesky(int n, int nb) {
 
     double start = starpu_timing_now();
     for (int kk = 0; kk < nb; ++kk) {
-        //starpu_insert_task(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
-        s_potrf(kk, dataA[kk+kk*nb]);
+        starpu_insert_task(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
+        //s_potrf(kk, dataA[kk+kk*nb]);
 
         for (int ii = kk+1; ii < nb; ++ii) {
-            //starpu_insert_task(&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],STARPU_TAG_ONLY, TAG21(kk,ii),0);
-            s_trsm(kk,ii,dataA[kk+kk*nb],dataA[ii+kk*nb]);
+            starpu_insert_task(&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],STARPU_TAG_ONLY, TAG21(kk,ii),0);
+            //s_trsm(kk,ii,dataA[kk+kk*nb],dataA[ii+kk*nb]);
             for (int jj=kk+1; jj < nb; ++jj) {
-                //starpu_insert_task(&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
+                
                 if (jj <= ii) {
-                s_gemm(kk,ii,jj, dataA[ii+kk*nb],dataA[jj+kk*nb], dataA[ii+jj*nb]);
+                starpu_insert_task(&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
+                //s_gemm(kk,ii,jj, dataA[ii+kk*nb],dataA[jj+kk*nb], dataA[ii+jj*nb]);
                 }
             }
         }
