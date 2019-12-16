@@ -120,7 +120,7 @@ static void s_potrf(int k, starpu_data_handle_t data)
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
     //starpu_task_submit(task);
-    ret = starpu_task_insert(&potrf_cl,
+    int ret = starpu_task_insert(&potrf_cl,
                          STARPU_PRIORITY, STARPU_MAX_PRIO,
 						 STARPU_RW, data,
 						 STARPU_TAG_ONLY, TAG11(k),
