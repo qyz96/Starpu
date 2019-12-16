@@ -213,7 +213,7 @@ void cholesky(int n, int nb) {
         {
             //starpu_tag_declare_deps(TAG11(kk), 1, TAG22(kk-1, kk, kk));
         }
-        //starpu_insert_task(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
+        starpu_insert_task(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
         //s_potrf(kk, dataA[kk+kk*nb]);
 
         for (int ii = kk+1; ii < nb; ++ii) {
