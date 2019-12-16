@@ -219,7 +219,7 @@ void cholesky(int n, int nb) {
         for (int ii = kk+1; ii < nb; ++ii) {
             if (kk > 0)
             {
-                starpu_tag_declare_deps(TAG21(kk, ii), 2, TAG11(kk), TAG22(kk-1, ii, kk));
+                //starpu_tag_declare_deps(TAG21(kk, ii), 2, TAG11(kk), TAG22(kk-1, ii, kk));
             }
             else
             {
