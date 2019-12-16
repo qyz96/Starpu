@@ -245,8 +245,9 @@ void cholesky(int n, int nb) {
         }
     }
     //starpu_tag_wait(TAG11(nb-1));
-    double end = starpu_timing_now();
+    
     starpu_shutdown();
+    double end = starpu_timing_now();
     printf("Elapsed time: %0.4f \n", (end-start)/1000000);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
