@@ -80,9 +80,9 @@ static void s_potrf(int k, starpu_data_handle_t data)
 {
 
     struct starpu_task *task;
-	task=starpu_mpi_task_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data1, 0);
+	task=starpu_mpi_task_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data, 0);
 	int ret = starpu_task_submit(task);
-    starpu_mpi_task_post_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data1, 0);
+    starpu_mpi_task_post_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data, 0);
 }
 
 static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle_t data2)
@@ -138,7 +138,6 @@ void cholesky(int n, int nb, int rank, int size) {
     //Test
     //starpu_init(NULL);
 
-    double start = starpu_timing_now();
 /*     for (int kk = 0; kk < nb; ++kk) {
         if ((kk+kk*nb)%size == rank) {
             starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
