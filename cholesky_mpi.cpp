@@ -98,7 +98,7 @@ void cholesky(int n, int nb) {
     MatrixXd* A=&B;
     //cout<<A->size()<<"\n";
     //Test
-    starpu_init(NULL);
+    //starpu_init(NULL);
 
     double start = starpu_timing_now();
     for (int kk = 0; kk < nb; ++kk) {
@@ -119,7 +119,7 @@ void cholesky(int n, int nb) {
     }
     starpu_task_wait_for_all();
     double end = starpu_timing_now();
-    starpu_shutdown();
+    //starpu_shutdown();
 
     printf("Elapsed time: %0.4f \n", (end-start)/1000000);
     for (int ii=0; ii<nb; ii++) {
