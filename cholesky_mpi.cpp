@@ -143,6 +143,8 @@ void cholesky(int n, int nb, int rank, int size) {
             }
         }
     }
+    LLT<Ref<MatrixXd>> llt(L);
+    cout<<"Ref:\n"<<L<<endl;
 
 /*     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
