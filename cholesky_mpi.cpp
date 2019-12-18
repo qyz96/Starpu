@@ -137,14 +137,14 @@ void cholesky(int n, int nb, int rank, int size) {
 
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
-            starpu_data_acquire(token_handle, STARPU_RW);
+            starpu_data_acquire(dataA[ii+jj*nb], STARPU_RW);
             if (rank==0 && (ii+jj*nb)%size != rank) {
                 starpu_mpi_irecv_detached(dataA[ii+jj*nb], (ii+jj*nb)%size, ii+jj*nb, MPI_COMM_WORLD, NULL, NULL);
             }
             else if ((ii+jj*nb)%size == rank && rank != 0) {
                 starpu_mpi_isend_detached(dataA[ii+jj*nb], 0, ii+jj*nb, MPI_COMM_WORLD, NULL, NULL);
             }
-            starpu_data_release(token_handle);
+            starpu_data_release(dataA[ii+jj*nb]);
         }
     }
     for (int ii=0; ii<nb; ii++) {
