@@ -80,7 +80,7 @@ struct starpu_codelet gemm_cl = {
 
 
 
-void cholesky(int n, int nb, int rank) {
+void cholesky(int n, int nb, int rank, int size) {
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
@@ -90,8 +90,11 @@ void cholesky(int n, int nb, int rank) {
         for (int jj=0; jj<nb; jj++) {
             blocs[ii+jj*nb]=new MatrixXd(n,n);
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
-            starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
-            starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
+            starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+            if ((ii+jj*nb)%size == rank) {
+                starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
+                starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
+            }
         }
     }
     MatrixXd* A=&B;
@@ -162,7 +165,7 @@ int main(int argc, char **argv)
         nb = atoi(argv[2]);
     }
 
-    cholesky(n,nb, rank);
+    cholesky(n,nb, rank, size);
     starpu_mpi_shutdown();
     return 0;
 }
