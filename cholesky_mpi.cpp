@@ -22,9 +22,10 @@ using namespace Eigen;
 
 
 void potrf(void *buffers[], void *cl_arg) { 
-	auto task = starpu_task_get_current();
-	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
-	auto A = static_cast<MatrixXd*>(u_data0);
+	//auto task = starpu_task_get_current();
+	//auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
+	//auto A = static_cast<MatrixXd*>(u_data0);
+    MatrixXd *A= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
     //printf("POTRF:%llx \n", task->tag_id);
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
      }
