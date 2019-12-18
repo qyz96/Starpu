@@ -48,11 +48,8 @@ struct starpu_codelet trsm_cl = {
 };
 
 void syrk(void *buffers[], void *cl_arg) { 
-    auto task = starpu_task_get_current();
-	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
-	auto A0 = static_cast<MatrixXd*>(u_data0);
-    auto u_data1 = starpu_data_get_user_data(task->handles[1]); 
-	auto A1 = static_cast<MatrixXd*>(u_data1);
+    MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
 	cblas_dsyrk(CblasColMajor, CblasLower, CblasNoTrans, A0->rows(), A0->rows(), -1.0, A0->data(), A0->rows(), 1.0, A1->data(), A0->rows());
  }
 struct starpu_codelet syrk_cl = {
@@ -63,13 +60,9 @@ struct starpu_codelet syrk_cl = {
 };
 
 void gemm(void *buffers[], void *cl_arg) {
-    auto task = starpu_task_get_current();
-	auto u_data0 = starpu_data_get_user_data(task->handles[0]); 
-	auto A0 = static_cast<MatrixXd*>(u_data0);
-    auto u_data1 = starpu_data_get_user_data(task->handles[1]); 
-	auto A1 = static_cast<MatrixXd*>(u_data1);
-    auto u_data2 = starpu_data_get_user_data(task->handles[2]); 
-	auto A2 = static_cast<MatrixXd*>(u_data2);
+    MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
+    MatrixXd *A2= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[2]);
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, A0->rows(), A0->rows(), A0->rows(), 
     -1.0,A0->data(), A0->rows(), A1->transpose().data(), A0->rows(), 1.0, 
     A2->data(), A0->rows());
@@ -97,7 +90,6 @@ void cholesky(int n, int nb) {
             blocs[ii+jj*nb]=new MatrixXd(n,n);
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
             starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
-            starpu_data_set_user_data(dataA[ii+jj*nb], (void*)blocs[ii+jj*nb]);
         }
     }
     MatrixXd* A=&B;
