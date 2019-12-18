@@ -105,7 +105,7 @@ void cholesky(int n, int nb) {
             for (int jj=kk+1; jj < nb; ++jj) {         
                 if (jj <= ii) {
                     if (jj==ii) {
-                        starpu_insert_task(&syrk_cl, STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
+                        starpu_insert_task(&syrk_cl, STARPU_R, dataA[ii+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
                     }
                     else {
                         starpu_insert_task(&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
