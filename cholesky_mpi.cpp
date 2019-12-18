@@ -81,10 +81,6 @@ struct starpu_codelet gemm_cl = {
 
 
 void cholesky(int n, int nb) {
-    int rank, size;
-    starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-    starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
-    cout<<"MPI RANK: "<<rank<<endl;
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
@@ -150,6 +146,10 @@ void cholesky(int n, int nb) {
 int main(int argc, char **argv)
 {
     starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+    int rank, size;
+    starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+    starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+    printf("Rank %d hello from %s\n", rank, processor_name().c_str());
     int n=10;
     int nb=1;
     if (argc >= 2)
