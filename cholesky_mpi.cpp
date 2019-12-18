@@ -84,6 +84,7 @@ void cholesky(int n, int nb) {
     int rank, size;
     starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
     starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+    cout<<"MPI RANK: "<<rank<<endl;
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
