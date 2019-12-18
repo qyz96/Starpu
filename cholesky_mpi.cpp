@@ -101,7 +101,7 @@ void cholesky(int n, int nb) {
         for (int jj=0; jj<nb; jj++) {
             blocs[ii+jj*nb]=new MatrixXd(n,n);
             *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
-            starpu_vector_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb]->data(), 
+            starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], 
             n, sizeof(double));
             starpu_data_set_user_data(dataA[ii+jj*nb], (void*)blocs[ii+jj*nb]);
         }
