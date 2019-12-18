@@ -149,7 +149,7 @@ int main(int argc, char **argv)
     int rank, size;
     starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
     starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
-    printf("Rank %d hello from %s\n", rank, processor_name().c_str());
+    printf("Rank %d hello from %s\n", rank, MPI_GET_processor_name().c_str());
     int n=10;
     int nb=1;
     if (argc >= 2)
