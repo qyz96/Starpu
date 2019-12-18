@@ -120,7 +120,7 @@ void cholesky(int n, int nb) {
     }
     starpu_task_wait_for_all();
     double end = starpu_timing_now();
-    /for (int ii=0; ii<nb; ii++) {
+    for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             starpu_data_unregister(dataA[ii+jj*nb]);
         }
