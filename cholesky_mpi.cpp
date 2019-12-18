@@ -134,6 +134,19 @@ void cholesky(int n, int nb, int rank, int size) {
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             if (jj <= ii) {
+             if ((ii+jj*nb)%size == rank) {
+                cout<<ii<<" "<<jj<<": "<<*blocs[ii+jj*nb]<<endl;
+            }
+            //cout<<ii<<" "<<jj<<endl;
+            //starpu_data_release(dataA[ii+jj*nb]);
+            
+            }
+        }
+    }
+
+/*     for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+            if (jj <= ii) {
             if (rank==0 && (ii+jj*nb)%size != rank) {
                 starpu_data_acquire(dataA[ii+jj*nb], STARPU_W);
                 starpu_mpi_irecv_detached(dataA[ii+jj*nb], (ii+jj*nb)%size, ii+jj*nb, MPI_COMM_WORLD, NULL, NULL);
@@ -147,7 +160,7 @@ void cholesky(int n, int nb, int rank, int size) {
             
             }
         }
-    }
+    } */
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
