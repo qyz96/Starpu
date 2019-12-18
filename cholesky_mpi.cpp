@@ -80,6 +80,9 @@ struct starpu_codelet gemm_cl = {
 
 
 void cholesky(int n, int nb) {
+    int rank, size;
+    starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+    starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
@@ -140,11 +143,7 @@ void cholesky(int n, int nb) {
 //Test
 int main(int argc, char **argv)
 {
-    int req = MPI_THREAD_FUNNELED;
-    int prov = -1;
-
-    MPI_Init_thread(NULL, NULL, req, &prov);
-
+    starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
     int n=10;
     int nb=1;
     if (argc >= 2)
@@ -157,6 +156,6 @@ int main(int argc, char **argv)
     }
 
     cholesky(n,nb);
-    MPI_Finalize();
+    starpu_mpi_shutdown();
     return 0;
 }
