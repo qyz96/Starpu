@@ -120,7 +120,11 @@ void cholesky(int n, int nb) {
     }
     starpu_task_wait_for_all();
     double end = starpu_timing_now();
-    //starpu_shutdown();
+    /for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+            starpu_data_unregister(dataA[ii+jj*nb]);
+        }
+    }
 
     printf("Elapsed time: %0.4f \n", (end-start)/1000000);
     for (int ii=0; ii<nb; ii++) {
