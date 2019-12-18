@@ -134,6 +134,17 @@ void cholesky(int n, int nb, int rank, int size) {
     }
 
     printf("Elapsed time: %0.4f \n", (end-start)/1000000);
+
+    for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+            if (rank==0 && (ii+jj*nb)%size != rank) {
+                starpu_mpi_irecv_detached(dataA[ii+jj*nb], (ii+jj*nb)%size, ii+jj*nb, MPI_COMM_WORLD, NULL, NULL);
+            }
+            else if ((ii+jj*nb)%size == rank && rank != 0) {
+                starpu_mpi_isend_detached(dataA[ii+jj*nb], 0, ii+jj*nb, MPI_COMM_WORLD, NULL, NULL);
+            }
+        }
+    }
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
