@@ -76,7 +76,45 @@ struct starpu_codelet gemm_cl = {
     .modes = { STARPU_R, STARPU_R, STARPU_RW }
 };
 
+static void s_potrf(int k, starpu_data_handle_t data)
+{
 
+    struct starpu_task *task;
+	task=starpu_mpi_task_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data1, 0);
+	int ret = starpu_task_submit(task);
+    starpu_mpi_task_post_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data1, 0);
+}
+
+static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle_t data2)
+{
+    //printf("task 21 k = %d i = %d TAG = %llx\n", k, i, (TAG21(k, i)));
+    struct starpu_task *task;
+
+	task=starpu_mpi_task_build(MPI_COMM_WORLD, &trsm_cl, STARPU_R, data1, STARPU_RW, data2, 0);
+	int ret = starpu_task_submit(task);
+    starpu_mpi_task_post_build(MPI_COMM_WORLD, &trsm_cl, STARPU_R, data1, STARPU_RW, data2, 0);
+
+}
+
+static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_handle_t data2, starpu_data_handle_t data3)
+{
+    //printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); 
+
+	struct starpu_task *task;
+    if (i==j){
+        task=starpu_mpi_task_build(MPI_COMM_WORLD, &syrk_cl, STARPU_R, data1, STARPU_RW, data2, 0);
+    }
+    else {
+        task=starpu_mpi_task_build(MPI_COMM_WORLD, &gemm_cl, STARPU_R, data1, STARPU_R, data2, STARPU_RW, data3,0);
+    }
+    int ret = starpu_task_submit(task);
+    if (i==j){
+        starpu_mpi_task_post_build(MPI_COMM_WORLD, &syrk_cl, STARPU_R, data1, STARPU_RW, data2, 0);
+    }
+    else {
+        starpu_mpi_task_post_build(MPI_COMM_WORLD, &gemm_cl, STARPU_R, data1, STARPU_R, data2, STARPU_RW, data3,0);
+    }
+}
 
 
 
@@ -101,7 +139,7 @@ void cholesky(int n, int nb, int rank, int size) {
     //starpu_init(NULL);
 
     double start = starpu_timing_now();
-    for (int kk = 0; kk < nb; ++kk) {
+/*     for (int kk = 0; kk < nb; ++kk) {
         if ((kk+kk*nb)%size == rank) {
             starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
         }
@@ -120,6 +158,24 @@ void cholesky(int n, int nb, int rank, int size) {
                         if ((ii+jj*nb)%size == rank) {
                         starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
                         }
+                    }
+                }
+            }
+        }
+    } */
+    double start = starpu_timing_now();
+    for (int kk = 0; kk < nb; ++kk) {
+        if ((kk+kk*nb)%size == rank) {
+            s_potrf(kk, dataA[kk+kk*nb]);
+        }
+        for (int ii = kk+1; ii < nb; ++ii) {
+            if ((ii+kk*nb)%size == rank) {
+            s_trsm(kk,ii,dataA[kk+kk*nb],dataA[ii+kk*nb]);
+            }
+            for (int jj=kk+1; jj < nb; ++jj) {         
+                if (jj <= ii) {
+                        if ((ii+jj*nb)%size == rank) {
+                        s_gemm(kk,ii,jj, dataA[ii+kk*nb],dataA[jj+kk*nb], dataA[ii+jj*nb]);
                     }
                 }
             }
