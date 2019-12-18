@@ -1,4 +1,5 @@
 #include <starpu.h>
+#include <starpu_mpi.h>
 #include<vector>
 #include<memory>
 #include<iostream>
