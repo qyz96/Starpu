@@ -137,8 +137,8 @@ void cholesky(int n, int nb, int rank, int size) {
     //cout<<A->size()<<"\n";
     //Test
     //starpu_init(NULL);
-
-/*     for (int kk = 0; kk < nb; ++kk) {
+    double start = starpu_timing_now();
+    for (int kk = 0; kk < nb; ++kk) {
         if ((kk+kk*nb)%size == rank) {
             starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
         }
@@ -161,9 +161,9 @@ void cholesky(int n, int nb, int rank, int size) {
                 }
             }
         }
-    } */
-    double start = starpu_timing_now();
-    for (int kk = 0; kk < nb; ++kk) {
+    }
+    
+    /* for (int kk = 0; kk < nb; ++kk) {
         if ((kk+kk*nb)%size == rank) {
             s_potrf(kk, dataA[kk+kk*nb]);
         }
@@ -179,7 +179,7 @@ void cholesky(int n, int nb, int rank, int size) {
                 }
             }
         }
-    }
+    } */
     starpu_task_wait_for_all();
     double end = starpu_timing_now();
 
