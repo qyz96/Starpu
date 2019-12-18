@@ -146,8 +146,9 @@ void cholesky(int n, int nb, int rank, int size) {
                 starpu_data_acquire(dataA[ii+jj*nb], STARPU_R);
                 starpu_mpi_isend_detached(dataA[ii+jj*nb], 0, ii+jj*nb, MPI_COMM_WORLD, NULL, NULL);
             }
-            starpu_data_release(dataA[ii+jj*nb]);
             cout<<ii<<" "<<jj<<endl;
+            starpu_data_release(dataA[ii+jj*nb]);
+            
             }
         }
     }
