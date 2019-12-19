@@ -39,8 +39,8 @@ struct starpu_codelet cl1 = {
 
 void task2(void *buffers[], void *cl_arg) { 
 
-    int *A0= (int *)STARPU_VARIABLE_GET_PTR(buffers[1]);
-	int *A1= (int *)STARPU_VARIABLE_GET_PTR(buffers[2]);
+    int *A0= (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	int *A1= (int *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     *A1+=*A0;
     cout<<"A1 = "<<*A1<<endl;
     return;
@@ -73,7 +73,7 @@ void test(int rank)  {
         starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
     }
     else {
-        starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_RW, data2,STARPU_R, data1,0);
+        starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
     }
 
 
