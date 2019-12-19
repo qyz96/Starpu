@@ -25,22 +25,22 @@ using namespace Eigen;
 
 void task1(void *buffers[], void *cl_arg) { 
 
-    int *A= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+    int *A= (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	*A+=1;
     cout<<"incrementing a"<<endl;
     return;
      }
 struct starpu_codelet cl1 = {
     .where = STARPU_CPU,
-    .cpu_funcs = { task, NULL },
+    .cpu_funcs = { task1, NULL },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
 
 void task2(void *buffers[], void *cl_arg) { 
 
-    int *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
-	int *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
+    int *A0= (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	int *A1= (int *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     *A1+=*A0;
     cout<<"A1 = "<<*A1<<endl;
     return;
@@ -55,8 +55,10 @@ struct starpu_codelet cl2 = {
 
 void test(int rank)  {
     int* a,b;
-    *a=1;
-    *b=1;
+    int B=1;
+    int C=1;
+    *a=B;
+    *b=C;
     starpu_data_handle_t data1, data2;
     if (rank==0) {
         starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)a, sizeof(int));
