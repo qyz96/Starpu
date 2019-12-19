@@ -140,7 +140,7 @@ void cholesky(int n, int nb, int rank, int size) {
                 else {
                     starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 }
-                if (dataA[ii][jj]) {
+                if (dataA[ii+jj*nb]) {
                     starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
 
                 }
