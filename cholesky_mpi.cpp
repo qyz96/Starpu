@@ -128,10 +128,6 @@ void cholesky(int n, int nb, int rank, int size) {
     vector<MatrixXd*> blocs(nb*nb);
     vector<starpu_data_handle_t> dataA(nb*nb);
 
-	for(int x=0 ; x<nb ; x++) {
-        dataA[x] = malloc(nb*sizeof(starpu_data_handle_t));
-        blocs[x]= malloc(nb*sizeof(MatrixXd));
-    }
 
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
