@@ -54,7 +54,8 @@ struct starpu_codelet cl2 = {
 
 
 void test(int rank)  {
-    int* a,b;
+    int* a;
+    int* b;
     int B=1;
     int C=1;
     *a=B;
