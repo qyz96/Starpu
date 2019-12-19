@@ -54,12 +54,8 @@ struct starpu_codelet cl2 = {
 
 
 void test(int rank)  {
-    int* a;
-    int* b;
-    int B=1;
-    int C=1;
-    *a=B;
-    *b=C;
+    int* a=new int(1);
+    int* b=new int(1);
     starpu_data_handle_t data1, data2;
     if (rank==0) {
         starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)a, sizeof(int));
