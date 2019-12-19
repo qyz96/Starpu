@@ -118,29 +118,38 @@ static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_
 }
 
 
-
 void cholesky(int n, int nb, int rank, int size) {
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
+    auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
-    vector<MatrixXd*> blocs(nb*nb);
-    vector<starpu_data_handle_t> dataA(nb*nb);
+    MatrixXd **blocs;
+    starpu_data_handle_t **dataA;
+    dataA = malloc(nb*sizeof(starpu_data_handle_t *));
+    blocs = malloc(nb*sizeof(MatrixXd *));
+
+	for(int x=0 ; x<nb ; x++) {
+        dataA[x] = malloc(nb*sizeof(starpu_data_handle_t));
+        blocs[x]= malloc(nb*sizeof(MatrixXd));
+    }
+
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
 
-            if (jj<=ii) {
-                blocs[ii+jj*nb]=new MatrixXd(n,n);
-                *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
+                blocs[ii][jj]=new MatrixXd(n,n);
+                *blocs[ii][jj]=L.block(ii*n,jj*n,n,n);
                 //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 
-                if (1) {
-                    starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
+                if (distrib(ii,jj)) {
+                    starpu_variable_data_register(&dataA[ii][jj], STARPU_MAIN_RAM, (uintptr_t)blocs[ii][jj], sizeof(MatrixXd));
                 }
                 else {
-                    starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+                    starpu_variable_data_register(&dataA[ii][jj], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 }
-                starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
-            }
+                if (dataA[ii][jj]) {
+                    starpu_mpi_data_register(dataA[ii][jj], ii+jj*nb, rank);
+
+                }
         }
     }
     MatrixXd* A=&B;
@@ -149,16 +158,16 @@ void cholesky(int n, int nb, int rank, int size) {
     //starpu_init(NULL);
     double start = starpu_timing_now();
     for (int kk = 0; kk < nb; ++kk) {
-            starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*nb],STARPU_TAG_ONLY, TAG11(kk),0);
+            starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk][kk]],STARPU_TAG_ONLY, TAG11(kk),0);
         for (int ii = kk+1; ii < nb; ++ii) {
-            starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],STARPU_TAG_ONLY, TAG21(kk,ii),0);
+            starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,STARPU_R, dataA[kk][kk]],STARPU_RW, dataA[ii][kk],STARPU_TAG_ONLY, TAG21(kk,ii),0);
             for (int jj=kk+1; jj < nb; ++jj) {         
                 if (jj <= ii) {
                     if (jj==ii) {
-                        starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, STARPU_R, dataA[ii+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
+                        starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, STARPU_R, dataA[ii][kk],STARPU_RW, dataA[ii][jj],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
                     }
                     else {
-                        starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
+                        starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,STARPU_R, dataA[ii][kk],STARPU_R, dataA[jj][kk],STARPU_RW, dataA[ii][jj],STARPU_TAG_ONLY, TAG22(kk,ii,jj),0);
                     }
                 }
             }
