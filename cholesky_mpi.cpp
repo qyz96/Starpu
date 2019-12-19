@@ -56,6 +56,7 @@ struct starpu_codelet cl2 = {
 void test(int rank)  {
     int* a=new int(1);
     int* b=new int(1);
+    int* c=new int(1);
     starpu_data_handle_t data1, data2;
     if (rank==0) {
         starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)a, sizeof(int));
@@ -69,7 +70,7 @@ void test(int rank)  {
     starpu_mpi_data_register(data2, 1, rank);
 
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
-    starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
+    //starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
 
     return;
 
