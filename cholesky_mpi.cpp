@@ -68,12 +68,12 @@ void test(int rank)  {
     }
     starpu_mpi_data_register(data1, 0, rank);
     starpu_mpi_data_register(data2, 1, rank);
-
+    starpu_tag_declare_deps(TAG11(1), 1, TAG11(2));
     if (rank==0) {
-        starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
+        starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, STARPU_TAG_ONLY, TAG11(1), 0);
     }
     else {
-        starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
+        starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2, STARPU_TAG_ONLY, TAG11(2), 0);
     }
 
     return;
