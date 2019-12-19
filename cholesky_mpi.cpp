@@ -123,8 +123,6 @@ void cholesky(int n, int nb, int rank, int size) {
     auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
-    MatrixXd **blocs;
-    starpu_data_handle_t **dataA;
     vector<MatrixXd*> blocs(nb*nb);
     vector<starpu_data_handle_t> dataA(nb*nb);
 
