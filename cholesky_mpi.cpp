@@ -27,7 +27,7 @@ void task1(void *buffers[], void *cl_arg) {
 
     int *A= (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	*A+=1;
-    cout<<"incrementing a"<<endl;
+    cout<<"Incrementing *a, *a="<<*A<<endl;
     return;
      }
 struct starpu_codelet cl1 = {
@@ -42,7 +42,7 @@ void task2(void *buffers[], void *cl_arg) {
     int *A0= (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	int *A1= (int *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     *A1+=*A0;
-    cout<<"A1 = "<<*A1<<endl;
+    cout<<"*b + *a= "<<*A1<<endl;
     return;
      }
 struct starpu_codelet cl2 = {
