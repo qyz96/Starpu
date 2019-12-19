@@ -22,6 +22,62 @@ using namespace std;
 using namespace Eigen;
 
 
+
+void task1(void *buffers[], void *cl_arg) { 
+
+    int *A= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	*A+=1;
+    cout<<"incrementing a"<<endl;
+    return;
+     }
+struct starpu_codelet cl1 = {
+    .where = STARPU_CPU,
+    .cpu_funcs = { task, NULL },
+    .nbuffers = 1,
+    .modes = { STARPU_RW }
+};
+
+void task2(void *buffers[], void *cl_arg) { 
+
+    int *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	int *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
+    *A1+=*A0;
+    cout<<"A1 = "<<*A1<<endl;
+    return;
+     }
+struct starpu_codelet cl2 = {
+    .where = STARPU_CPU,
+    .cpu_funcs = { task2, NULL },
+    .nbuffers = 2,
+    .modes = { STARPU_R, STARPU_RW }
+};
+
+
+void test(int rank)  {
+    int* a,b;
+    *a=1;
+    *b=1;
+    starpu_data_handle_t data1, data2;
+    if (rank==0) {
+        starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)a, sizeof(int));
+        starpu_variable_data_register(&data2, -1, (uintptr_t)b, sizeof(int));
+    }
+    else {
+        starpu_variable_data_register(&data1, -1, (uintptr_t)a, sizeof(int));
+        starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)b, sizeof(int));
+    }
+    starpu_mpi_data_register(data1, 0, rank);
+    starpu_mpi_data_register(data2, 0, rank);
+
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
+
+    return;
+
+
+}
+
+
 void potrf(void *buffers[], void *cl_arg) { 
 
     MatrixXd *A= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
@@ -262,7 +318,8 @@ int main(int argc, char **argv)
         nb = atoi(argv[2]);
     }
 
-    cholesky(n,nb, rank, size);
+    //cholesky(n,nb, rank, size);
+    test(rank);
     starpu_mpi_shutdown();
     return 0;
 }
