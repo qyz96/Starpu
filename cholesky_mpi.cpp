@@ -37,6 +37,7 @@ struct starpu_codelet potrf_cl = {
 void trsm(void *buffers[], void *cl_arg) {
 	MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
+    cout<<"\n"<<*A0<<"\n"<<A1<<endl;
 	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), 
     A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
     //printf("TRSM:%llx \n", task->tag_id);
@@ -190,7 +191,7 @@ void cholesky(int n, int nb, int rank, int size) {
         for (int jj=0; jj<nb; jj++) {
             if (jj <= ii) {
              if ((ii+jj*nb)%size == rank) {
-                cout<<ii<<" "<<jj<<":\n"<<*blocs[ii+jj*nb]<<endl;
+                //cout<<ii<<" "<<jj<<":\n"<<*blocs[ii+jj*nb]<<endl;
             }
             //cout<<ii<<" "<<jj<<endl;
             //starpu_data_release(dataA[ii+jj*nb]);
