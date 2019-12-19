@@ -63,10 +63,10 @@ void test(int rank)  {
     starpu_data_handle_t data1, data2;
     if (rank==0) {
         starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)a, sizeof(int));
-        starpu_variable_data_register(&data2, -1, (uintptr_t)b, sizeof(int));
+        starpu_variable_data_register(&data2, -1, (uintptr_t)NULL, sizeof(int));
     }
     else {
-        starpu_variable_data_register(&data1, -1, (uintptr_t)a, sizeof(int));
+        starpu_variable_data_register(&data1, -1, (uintptr_t)NULL, sizeof(int));
         starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)b, sizeof(int));
     }
     starpu_mpi_data_register(data1, 0, rank);
