@@ -128,12 +128,12 @@ void cholesky(int n, int nb, int rank, int size) {
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
 
-            if (1) {
+            if (jj<=ii) {
                 blocs[ii+jj*nb]=new MatrixXd(n,n);
                 *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
                 //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 
-                if ((ii+jj*nb)%size == rank) {
+                if (1) {
                     starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
                 }
                 else {
