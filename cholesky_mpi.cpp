@@ -127,16 +127,19 @@ void cholesky(int n, int nb, int rank, int size) {
     vector<starpu_data_handle_t> dataA(nb*nb);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
-            blocs[ii+jj*nb]=new MatrixXd(n,n);
-            *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
-            //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
-            
-            if ((ii+jj*nb)%size == rank) {
-                starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
-                starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
-            }
-            else {
-                starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+
+            if (ii <=jj) {
+                blocs[ii+jj*nb]=new MatrixXd(n,n);
+                *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
+                //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+                
+                if ((ii+jj*nb)%size == rank) {
+                    starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
+                    starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
+                }
+                else {
+                    starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+                }
             }
         }
     }
