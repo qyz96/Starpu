@@ -95,8 +95,7 @@ void trsm(void *buffers[], void *cl_arg) {
 	MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     cout<<"\n"<<*A0<<"\n"<<*A1<<endl;
-	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), 
-    A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
+	//cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
     //printf("TRSM:%llx \n", task->tag_id);
   }
 struct starpu_codelet trsm_cl = {
@@ -211,7 +210,7 @@ void cholesky(int n, int nb, int rank, int size) {
     for (int kk = 0; kk < nb; ++kk) {
             starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*nb],0);
         for (int ii = kk+1; ii < nb; ++ii) {
-            //starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],0);
+            starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],0);
             starpu_mpi_cache_flush(MPI_COMM_WORLD, dataA[kk+kk*nb]);
             for (int jj=kk+1; jj < nb; ++jj) {         
                 if (jj <= ii) {
