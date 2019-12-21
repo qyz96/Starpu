@@ -95,7 +95,7 @@ void trsm(void *buffers[], void *cl_arg) {
 	MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     auto L = A0->triangularView<Lower>().transpose();
-    cout<<"\n"<<*A0<<"\n"<<*A1<<endl;
+    //cout<<"\n"<<*A0<<"\n"<<*A1<<endl;
     //MatrixXd TT = *A1;
     //auto BB = L.solve<OnTheRight>(TT);
     
