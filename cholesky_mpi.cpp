@@ -285,6 +285,7 @@ void cholesky(int n, int nb, int rank, int size) {
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
+            free(blocs[ii+jj*nb]);
         }
     }
     auto L1=L.triangularView<Lower>();
