@@ -254,7 +254,7 @@ void cholesky(int n, int nb, int rank, int size) {
         for (int jj=0; jj<nb; jj++) {
             if (jj <= ii) {
              if ((ii+jj*nb)%size == rank) {
-                cout<<ii<<" "<<jj<<":\n"<<*blocs[ii+jj*nb]<<endl;
+                //cout<<ii<<" "<<jj<<":\n"<<*blocs[ii+jj*nb]<<endl;
             }
             //cout<<ii<<" "<<jj<<endl;
             //starpu_data_release(dataA[ii+jj*nb]);
@@ -263,7 +263,7 @@ void cholesky(int n, int nb, int rank, int size) {
         }
     }
     LLT<Ref<MatrixXd>> llt(L);
-    cout<<"Ref:\n"<<L<<endl;
+    //cout<<"Ref:\n"<<L<<endl;
 
 /*     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
