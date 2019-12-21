@@ -255,7 +255,7 @@ void cholesky(int n, int nb, int rank, int size) {
         for (int jj=0; jj<nb; jj++) {
             if (jj <= ii) {
              if ((ii+jj*nb)%size == rank) {
-                //cout<<ii<<" "<<jj<<":\n"<<*blocs[ii+jj*nb]<<endl;
+                cout<<ii<<" "<<jj<<":\n"<<*blocs[ii+jj*nb]<<endl;
             }
             //cout<<ii<<" "<<jj<<endl;
             //starpu_data_release(dataA[ii+jj*nb]);
