@@ -211,7 +211,7 @@ void cholesky(int n, int nb, int rank, int size) {
     for (int kk = 0; kk < nb; ++kk) {
             starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*nb],0);
         for (int ii = kk+1; ii < nb; ++ii) {
-            starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],0);
+            //starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],0);
             starpu_mpi_cache_flush(MPI_COMM_WORLD, dataA[kk+kk*nb]);
             for (int jj=kk+1; jj < nb; ++jj) {         
                 if (jj <= ii) {
