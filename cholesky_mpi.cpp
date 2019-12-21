@@ -198,7 +198,7 @@ void cholesky(int n, int nb, int rank, int size) {
                     starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
                 }
                 if (dataA[ii+jj*nb]) {
-                    starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, (ii+jj*nb)%size);
+                    starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
 
                 }
         }
