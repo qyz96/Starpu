@@ -191,7 +191,6 @@ void cholesky(int n, int nb, int rank, int size) {
                 *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
                 //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 int mpi_rank = ((ii+jj*nb)%size);
-                cout<<mpi_rank<<endl;
                 if (mpi_rank == rank) {
                     starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
                 }
