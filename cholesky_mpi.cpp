@@ -198,7 +198,7 @@ void cholesky(int n, int nb, int rank, int size) {
                     starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 }
                 if (dataA[ii+jj*nb]) {
-                    starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, rank);
+                    starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, (ii+jj*nb)%size);
 
                 }
         }
@@ -321,8 +321,8 @@ int main(int argc, char **argv)
         nb = atoi(argv[2]);
     }
 
-    //cholesky(n,nb, rank, size);
-    test(rank);
+    cholesky(n,nb, rank, size);
+    //test(rank);
     starpu_mpi_shutdown();
     return 0;
 }
