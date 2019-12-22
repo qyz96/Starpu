@@ -76,12 +76,6 @@ void trsm(void *buffers[], void *cl_arg) {
 	double *A1= (double *)STARPU_MATRIX_GET_PTR(buffers[1]);
     int nx = STARPU_MATRIX_GET_NY(buffers[0]);
 	int ny = STARPU_MATRIX_GET_NX(buffers[0]);
-    //auto L = A0->triangularView<Lower>().transpose();
-    Map<MatrixXd> tt(A0, 2, 2);
-
-    cout<<"A0 now is:\n"<<tt<<endl;
-    //MatrixXd TT = *A1;
-    //auto BB = L.solve<OnTheRight>(TT);
     
 	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, ny, ny, 1.0, A0, nx, A1, nx);
     //printf("TRSM:%llx \n", task->tag_id);
@@ -94,9 +88,11 @@ struct starpu_codelet trsm_cl = {
 };
 
 void syrk(void *buffers[], void *cl_arg) { 
-    MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
-	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
-	cblas_dsyrk(CblasColMajor, CblasLower, CblasNoTrans, A0->rows(), A0->rows(), -1.0, A0->data(), A0->rows(), 1.0, A1->data(), A0->rows());
+    double *A0= (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
+	double *A1= (double *)STARPU_MATRIX_GET_PTR(buffers[1]);
+    int nx = STARPU_MATRIX_GET_NY(buffers[0]);
+	int ny = STARPU_MATRIX_GET_NX(buffers[0]);
+	cblas_dsyrk(CblasColMajor, CblasLower, CblasNoTrans, nx, nx, -1.0, A0, nx, 1.0, A1, nx);
  }
 struct starpu_codelet syrk_cl = {
     .where = STARPU_CPU,
@@ -106,12 +102,13 @@ struct starpu_codelet syrk_cl = {
 };
 
 void gemm(void *buffers[], void *cl_arg) {
-    MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
-	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
-    MatrixXd *A2= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[2]);
-    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, A0->rows(), A0->rows(), A0->rows(), 
-    -1.0,A0->data(), A0->rows(), A1->transpose().data(), A0->rows(), 1.0, 
-    A2->data(), A0->rows());
+    double *A0= (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
+	double *A1= (double *)STARPU_MATRIX_GET_PTR(buffers[1]);
+    double *A2= (double *)STARPU_MATRIX_GET_PTR(buffers[2]);
+    int nx = STARPU_MATRIX_GET_NY(buffers[0]);
+	int ny = STARPU_MATRIX_GET_NX(buffers[0]);
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, nx, nx, ny, 
+    -1.0,A0, nx, A1, nx, 1.0, A2, nx);
     //printf("GEMM:%llx \n", task->tag_id);
   }
 struct starpu_codelet gemm_cl = {
@@ -204,10 +201,12 @@ void cholesky(int n, int nb, int rank, int size) {
                 //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 int mpi_rank = ((ii+jj*nb)%size);
                 if (mpi_rank == rank) {
-                    starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
+                    starpu_matrix_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb]->data(), n, n, n, sizeof(double));
+                    //starpu_variable_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb], sizeof(MatrixXd));
                 }
                 else {
-                    starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+                    starpu_matrix_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, n, n, n, sizeof(double));
+                    //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
                 }
                 if (dataA[ii+jj*nb]) {
                     starpu_mpi_data_register(dataA[ii+jj*nb], ii+jj*nb, mpi_rank);
@@ -228,10 +227,10 @@ void cholesky(int n, int nb, int rank, int size) {
             for (int jj=kk+1; jj < nb; ++jj) {         
                 if (jj <= ii) {
                     if (jj==ii) {
-                        //starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, STARPU_R, dataA[ii+kk*nb],STARPU_RW, dataA[ii+jj*nb],0);
+                        starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, STARPU_R, dataA[ii+kk*nb],STARPU_RW, dataA[ii+jj*nb],0);
                     }
                     else {
-                        //starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],0);
+                        starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,STARPU_R, dataA[ii+kk*nb],STARPU_R, dataA[jj+kk*nb],STARPU_RW, dataA[ii+jj*nb],0);
                     }
                 }
             }
