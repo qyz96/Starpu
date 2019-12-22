@@ -345,7 +345,7 @@ int main(int argc, char **argv)
 
     cholesky(n,nb, rank, size);
     //test(rank);
-    MPI_Finalize();
     starpu_mpi_shutdown();
+    MPI_Finalize();
     return 0;
 }
