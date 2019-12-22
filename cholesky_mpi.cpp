@@ -95,7 +95,7 @@ void trsm(void *buffers[], void *cl_arg) {
 	MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     auto L = A0->triangularView<Lower>().transpose();
-    cout<<"\n"<<L<<"\n"<<endl;
+    cout<<"\n"<<*A1<<"\n"<<endl;
     //MatrixXd TT = *A1;
     //auto BB = L.solve<OnTheRight>(TT);
     
@@ -326,8 +326,8 @@ int main(int argc, char **argv)
         nb = atoi(argv[2]);
     }
 
-    cholesky(n,nb, rank, size);
-    //test(rank);
+    //cholesky(n,nb, rank, size);
+    test(rank);
     starpu_mpi_shutdown();
     return 0;
 }
