@@ -146,7 +146,7 @@ void test(int rank)  {
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
     if (rank==0) {cout<<"*b is equal to "<<*b<<"\n";}
     if (rank==0) { starpu_mpi_irecv_detached(data2, 1, 1, MPI_COMM_WORLD, NULL, NULL);}
-    else if  { starpu_mpi_isend_detached(data2, 0, 1, MPI_COMM_WORLD, NULL, NULL);}
+    else { starpu_mpi_isend_detached(data2, 0, 1, MPI_COMM_WORLD, NULL, NULL);}
 
     starpu_data_unregister(data1);
     starpu_data_unregister(data2);
