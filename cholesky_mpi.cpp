@@ -54,6 +54,9 @@ struct starpu_codelet cl2 = {
 
 
 void test(int rank)  {
+
+
+    /*
     int* a=new int(1);
     int* b=new int(1);
     int* c=new int(1);
@@ -71,8 +74,38 @@ void test(int rank)  {
 
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
+    */
+    int nb=2;
+    int n=2;
+    auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
+    auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
+    MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
+    MatrixXd L = B;
+    vector<MatrixXd*> blocs(nb*nb);
+    vector<starpu_data_handle_t> dataA(nb*nb);
+    for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+
+                blocs[ii+jj*nb]=new MatrixXd(n,n);
+                *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
+                //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+        }
+    }
+    starpu_data_handle_t data1, data2;
+    if (rank==0) {
+        starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)blocs[0], sizeof(MatrixXd));
+        starpu_variable_data_register(&data2, -1, (uintptr_t)NULL, sizeof(int));
+    }
+    else {
+        starpu_variable_data_register(&data1, -1, (uintptr_t)NULL, sizeof(int));
+        starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)blocs[1], sizeof(MatrixXd));
+    }
+    starpu_mpi_data_register(data1, 0, 0);
+    starpu_mpi_data_register(data2, 1, 1);
 
 
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl, STARPU_RW, data1, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
     return;
 
 
@@ -94,12 +127,12 @@ struct starpu_codelet potrf_cl = {
 void trsm(void *buffers[], void *cl_arg) {
 	MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
-    auto L = A0->triangularView<Lower>().transpose();
-    cout<<"\n"<<*A1<<"\n"<<endl;
+    //auto L = A0->triangularView<Lower>().transpose();
+    cout<<*A0<<"\n"<<*A1<<"\n"<<endl;
     //MatrixXd TT = *A1;
     //auto BB = L.solve<OnTheRight>(TT);
     
-	//cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
+	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
     //printf("TRSM:%llx \n", task->tag_id);
   }
 struct starpu_codelet trsm_cl = {
