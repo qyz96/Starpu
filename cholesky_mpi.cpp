@@ -57,9 +57,13 @@ struct starpu_codelet cl2 = {
 
 void potrf(void *buffers[], void *cl_arg) { 
 
-    MatrixXd *A= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
-	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
-    cout<<"A0 now is:\n"<<*A<<endl;
+    double *A= (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
+    int nx = STARPU_MATRIX_GET_NY(descr[1]);
+	int ny = STARPU_MATRIX_GET_NX(descr[1]);
+
+	//LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
+    LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
+    //cout<<"A0 now is:\n"<<*A<<endl;
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
@@ -114,45 +118,7 @@ struct starpu_codelet gemm_cl = {
     .modes = { STARPU_R, STARPU_R, STARPU_RW }
 };
 
-static void s_potrf(int k, starpu_data_handle_t data)
-{
 
-    struct starpu_task *task;
-	task=starpu_mpi_task_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data, 0);
-	int ret = starpu_task_submit(task);
-    starpu_mpi_task_post_build(MPI_COMM_WORLD, &potrf_cl, STARPU_R, data, 0);
-}
-
-static void s_trsm(int k, int i, starpu_data_handle_t data1,  starpu_data_handle_t data2)
-{
-    //printf("task 21 k = %d i = %d TAG = %llx\n", k, i, (TAG21(k, i)));
-    struct starpu_task *task;
-
-	task=starpu_mpi_task_build(MPI_COMM_WORLD, &trsm_cl, STARPU_R, data1, STARPU_RW, data2, 0);
-	int ret = starpu_task_submit(task);
-    starpu_mpi_task_post_build(MPI_COMM_WORLD, &trsm_cl, STARPU_R, data1, STARPU_RW, data2, 0);
-
-}
-
-static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_handle_t data2, starpu_data_handle_t data3)
-{
-    //printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); 
-
-	struct starpu_task *task;
-    if (i==j){
-        task=starpu_mpi_task_build(MPI_COMM_WORLD, &syrk_cl, STARPU_R, data1, STARPU_RW, data2, 0);
-    }
-    else {
-        task=starpu_mpi_task_build(MPI_COMM_WORLD, &gemm_cl, STARPU_R, data1, STARPU_R, data2, STARPU_RW, data3,0);
-    }
-    int ret = starpu_task_submit(task);
-    if (i==j){
-        starpu_mpi_task_post_build(MPI_COMM_WORLD, &syrk_cl, STARPU_R, data1, STARPU_RW, data2, 0);
-    }
-    else {
-        starpu_mpi_task_post_build(MPI_COMM_WORLD, &gemm_cl, STARPU_R, data1, STARPU_R, data2, STARPU_RW, data3,0);
-    }
-}
 
 void test(int rank)  {
 
@@ -196,19 +162,19 @@ void test(int rank)  {
     }
     starpu_data_handle_t data1, data2;
     if (rank==0) {
-        starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)blocs[0], sizeof(MatrixXd));
-        starpu_variable_data_register(&data2, -1, (uintptr_t)NULL, sizeof(MatrixXd));
+        starpu_matrix_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)blocs[0]->data(), n, n, n, sizeof(double));
+        starpu_matrix_data_register(&data2, -1, (uintptr_t)NULL, n, n, n, sizeof(double));
     }
     else {
-        starpu_variable_data_register(&data1, -1, (uintptr_t)NULL, sizeof(MatrixXd));
-        starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)blocs[1], sizeof(MatrixXd));
+        starpu_matrix_data_register(&data1, -1, (uintptr_t)NULL, n, n, n, sizeof(double));
+        starpu_matrix_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)blocs[1]->data(), n, n, n, sizeof(double));
     }
     starpu_mpi_data_register(data1, 0, 0);
     starpu_mpi_data_register(data2, 1, 1);
 
 
     starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl, STARPU_RW, data1, 0);
-    starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
+    //starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
 
     starpu_data_unregister(data1);
     starpu_data_unregister(data2);
