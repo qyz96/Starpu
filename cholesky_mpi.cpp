@@ -126,7 +126,7 @@ struct starpu_codelet gemm_cl = {
 void test(int rank)  {
 
 
-    /*
+    
     int* a=new int(1);
     int* b=new int(1);
     int* c=new int(1);
@@ -144,10 +144,15 @@ void test(int rank)  {
 
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
+    if (rank==0) {cout<<"*b is equal to "*b<<"\n";}
+    if (rank==0) { starpu_mpi_irecv_detached(data2, 1, 1, MPI_COMM_WORLD, NULL, NULL);}
+    else if  { starpu_mpi_isend_detached(data2, 0, 1, MPI_COMM_WORLD, NULL, NULL);}
+
     starpu_data_unregister(data1);
     starpu_data_unregister(data2);
-    */
-   
+    if (rank==0) {cout<<"*b is now equal to "*b<<"\n";}
+
+    /*
     int nb=2;
     int n=2;
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
@@ -181,6 +186,8 @@ void test(int rank)  {
 
     starpu_data_unregister(data1);
     starpu_data_unregister(data2);
+
+    */
     return;
 
 
