@@ -271,18 +271,16 @@ void cholesky(int n, int nb, int rank, int size) {
     }
     LLT<Ref<MatrixXd>> llt(L);
     cout<<"Ref:\n"<<L<<endl;
-
+    MPI_Status status;
    for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             if (jj<=ii)  {
             if (rank==0 && rank!=(ii+jj*nb)%size) {
-                cout<<"Receivinging data ("<<ii<<","<<jj<<") from rank "<<rank<<"\n";
-                starpu_mpi_irecv_detached(dataA[ii+jj*nb], (ii+jj*nb)%size, (ii+jj*nb)%size, MPI_COMM_WORLD, NULL, NULL);
+                MPI_Recv(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, (ii+jj*nb)%size, (ii+jj*nb)%size, MPI_COMM_WORLD, &status);
                 }
 
             else if (rank==(ii+jj*nb)%size) {
-                cout<<"Sending data ("<<ii<<","<<jj<<") from rank "<<rank<<"\n";
-                starpu_mpi_isend_detached(dataA[ii+jj*nb], 0, (ii+jj*nb)%size, MPI_COMM_WORLD, NULL, NULL);
+                MPI_Send(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, 0, (ii+jj*nb)%size, MPI_COMM_WORLD);
                 }
             }
         }
@@ -335,8 +333,8 @@ int main(int argc, char **argv)
         nb = atoi(argv[2]);
     }
 
-    //cholesky(n,nb, rank, size);
-    test(rank);
+    cholesky(n,nb, rank, size);
+    //test(rank);
     starpu_mpi_shutdown();
     return 0;
 }
