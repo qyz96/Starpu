@@ -63,9 +63,6 @@ void potrf(void *buffers[], void *cl_arg) {
 
 	//LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
-    Map<MatrixXd> tt(A, 2, 2);
-
-    cout<<"A0 now is:\n"<<tt<<endl;
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
@@ -75,14 +72,18 @@ struct starpu_codelet potrf_cl = {
 };
 
 void trsm(void *buffers[], void *cl_arg) {
-	MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
-	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
+	double *A0= (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
+	double *A1= (double *)STARPU_MATRIX_GET_PTR(buffers[1]);
+    int nx = STARPU_MATRIX_GET_NY(buffers[0]);
+	int ny = STARPU_MATRIX_GET_NX(buffers[0]);
     //auto L = A0->triangularView<Lower>().transpose();
-    cout<<*A0<<"\n"<<*A1<<"\n"<<endl;
+    Map<MatrixXd> tt(A0, 2, 2);
+
+    cout<<"A0 now is:\n"<<tt<<endl;
     //MatrixXd TT = *A1;
     //auto BB = L.solve<OnTheRight>(TT);
     
-	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
+	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, ny, ny, 1.0, A0, nx, A1, nx);
     //printf("TRSM:%llx \n", task->tag_id);
   }
 struct starpu_codelet trsm_cl = {
