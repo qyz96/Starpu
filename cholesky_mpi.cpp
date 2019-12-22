@@ -177,7 +177,7 @@ void test(int rank)  {
 
 
     starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl, STARPU_RW, data1, 0);
-    //starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
 
     starpu_data_unregister(data1);
     starpu_data_unregister(data2);
