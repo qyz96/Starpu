@@ -63,7 +63,7 @@ void potrf(void *buffers[], void *cl_arg) {
 
 	//LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
-    Map<MatrixXd> tt(A0, nx, nx);
+    Map<MatrixXd> tt(A, nx, nx);
     cout<<"POTRF: \n"<<tt<<"\n";
      }
 struct starpu_codelet potrf_cl = {
