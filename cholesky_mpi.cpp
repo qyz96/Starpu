@@ -157,7 +157,7 @@ static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_
 void test(int rank)  {
 
 
-    /*
+    
     int* a=new int(1);
     int* b=new int(1);
     int* c=new int(1);
@@ -175,7 +175,9 @@ void test(int rank)  {
 
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
-    */
+    
+
+   /*
     int nb=2;
     int n=2;
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
@@ -206,6 +208,8 @@ void test(int rank)  {
 
     starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl, STARPU_RW, data1, 0);
     starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
+
+    */
     return;
 
 
