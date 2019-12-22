@@ -64,7 +64,7 @@ void potrf(void *buffers[], void *cl_arg) {
 	//LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
     Map<MatrixXd> tt(A0, nx, nx);
-    cout<<"POTRF: \n"<<A1<<"\n";
+    cout<<"POTRF: \n"<<tt<<"\n";
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
@@ -80,7 +80,7 @@ void trsm(void *buffers[], void *cl_arg) {
 	int ny = STARPU_MATRIX_GET_NX(buffers[0]);
 	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, ny, ny, 1.0, A0, nx, A1, nx);
     Map<MatrixXd> tt(A1, nx, nx);
-    cout<<"TRSM: \n"<<A1<<"\n";
+    cout<<"TRSM: \n"<<tt<<"\n";
     //printf("TRSM:%llx \n", task->tag_id);
   }
 struct starpu_codelet trsm_cl = {
