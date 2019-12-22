@@ -145,8 +145,9 @@ void test(int rank)  {
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
     starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
     if (rank==0) {cout<<"*b is equal to "<<*b<<"\n";}
-    if (rank==0) { MPI_Recv(b, 1, MPI_INT, 1, 99, MPI_COMM_WORLD, 0);}
-    else { MPI_Send(b, 1, MPI_INT, 0, 99, MPI_COMM_WORLD, 0);}
+    MPI_Status status;
+    if (rank==0) { MPI_Recv(b, 1, MPI_INT, 1, 99, MPI_COMM_WORLD, &status);}
+    else { MPI_Send(b, 1, MPI_INT, 0, 99, MPI_COMM_WORLD);}
 
     starpu_data_unregister(data1);
     starpu_data_unregister(data2);
