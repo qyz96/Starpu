@@ -317,8 +317,10 @@ int main(int argc, char **argv)
     int rank, size;
     starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
     starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
-    printf("Running on %d CPU cores per rank,", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
-    printf("and %d ranks in total\n", size);
+    if (rank==0) {
+        printf("Running on %d CPU cores per rank,", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+        printf("and %d ranks in total\n", size);
+    }
     int n=10;
     int nb=1;
     if (argc >= 2)
