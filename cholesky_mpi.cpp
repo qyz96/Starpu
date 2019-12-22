@@ -255,18 +255,6 @@ void cholesky(int n, int nb, int rank, int size) {
     double end = starpu_timing_now();
     if (rank==0) {printf("Elapsed time: %0.4f \n", (end-start)/1000000);}
 
-    for (int ii=0; ii<nb; ii++) {
-        for (int jj=0; jj<nb; jj++) {
-            if (jj <= ii) {
-             if ((ii+jj*nb)%size == rank) {
-                //cout<<ii<<" "<<jj<<":\n"<<*blocs[ii+jj*nb]<<endl;
-            }
-            //cout<<ii<<" "<<jj<<endl;
-            //starpu_data_release(dataA[ii+jj*nb]);
-            
-            }
-        }
-    }
     MPI_Status status;
 
 
