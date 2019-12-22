@@ -266,7 +266,7 @@ void cholesky(int n, int nb, int rank, int size) {
    for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             if (jj<=ii)  {
-            if (rank==0) {starpu_mpi_irecv_detached(dataA[ii+jj*nb], rank, (ii+jj*nb)%size, MPI_COMM_WORLD, NULL, NULL);}
+            if (rank==0) {starpu_mpi_irecv_detached(dataA[ii+jj*nb], (ii+jj*nb)%size, (ii+jj*nb)%size, MPI_COMM_WORLD, NULL, NULL);}
             else if (rank==(ii+jj*nb)%size) {starpu_mpi_isend_detached(dataA[ii+jj*nb], 0, (ii+jj*nb)%size, MPI_COMM_WORLD, NULL, NULL);}
             }
         }
