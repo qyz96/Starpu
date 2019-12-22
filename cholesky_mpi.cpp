@@ -53,63 +53,6 @@ struct starpu_codelet cl2 = {
 };
 
 
-void test(int rank)  {
-
-
-    /*
-    int* a=new int(1);
-    int* b=new int(1);
-    int* c=new int(1);
-    starpu_data_handle_t data1, data2;
-    if (rank==0) {
-        starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)a, sizeof(int));
-        starpu_variable_data_register(&data2, -1, (uintptr_t)NULL, sizeof(int));
-    }
-    else {
-        starpu_variable_data_register(&data1, -1, (uintptr_t)NULL, sizeof(int));
-        starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)b, sizeof(int));
-    }
-    starpu_mpi_data_register(data1, 0, 0);
-    starpu_mpi_data_register(data2, 1, 1);
-
-    starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
-    starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
-    */
-    int nb=2;
-    int n=2;
-    auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
-    auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
-    MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
-    MatrixXd L = B;
-    vector<MatrixXd*> blocs(nb*nb);
-    vector<starpu_data_handle_t> dataA(nb*nb);
-    for (int ii=0; ii<nb; ii++) {
-        for (int jj=0; jj<nb; jj++) {
-
-                blocs[ii+jj*nb]=new MatrixXd(n,n);
-                *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
-                //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
-        }
-    }
-    starpu_data_handle_t data1, data2;
-    if (rank==0) {
-        starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)blocs[0], sizeof(MatrixXd));
-        starpu_variable_data_register(&data2, -1, (uintptr_t)NULL, sizeof(int));
-    }
-    else {
-        starpu_variable_data_register(&data1, -1, (uintptr_t)NULL, sizeof(int));
-        starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)blocs[1], sizeof(MatrixXd));
-    }
-    starpu_mpi_data_register(data1, 0, 0);
-    starpu_mpi_data_register(data2, 1, 1);
-
-
-    starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl, STARPU_RW, data1, 0);
-    starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
-    return;
-
-
-}
 
 
 void potrf(void *buffers[], void *cl_arg) { 
@@ -208,6 +151,64 @@ static void s_gemm(int k, int i, int j, starpu_data_handle_t data1, starpu_data_
     else {
         starpu_mpi_task_post_build(MPI_COMM_WORLD, &gemm_cl, STARPU_R, data1, STARPU_R, data2, STARPU_RW, data3,0);
     }
+}
+
+void test(int rank)  {
+
+
+    /*
+    int* a=new int(1);
+    int* b=new int(1);
+    int* c=new int(1);
+    starpu_data_handle_t data1, data2;
+    if (rank==0) {
+        starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)a, sizeof(int));
+        starpu_variable_data_register(&data2, -1, (uintptr_t)NULL, sizeof(int));
+    }
+    else {
+        starpu_variable_data_register(&data1, -1, (uintptr_t)NULL, sizeof(int));
+        starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)b, sizeof(int));
+    }
+    starpu_mpi_data_register(data1, 0, 0);
+    starpu_mpi_data_register(data2, 1, 1);
+
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&cl1, STARPU_RW, data1, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&cl2, STARPU_R, data1,STARPU_RW, data2,0);
+    */
+    int nb=2;
+    int n=2;
+    auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
+    auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
+    MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
+    MatrixXd L = B;
+    vector<MatrixXd*> blocs(nb*nb);
+    vector<starpu_data_handle_t> dataA(nb*nb);
+    for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+
+                blocs[ii+jj*nb]=new MatrixXd(n,n);
+                *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
+                //starpu_variable_data_register(&dataA[ii+jj*nb], -1, (uintptr_t)NULL, sizeof(MatrixXd));
+        }
+    }
+    starpu_data_handle_t data1, data2;
+    if (rank==0) {
+        starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t)blocs[0], sizeof(MatrixXd));
+        starpu_variable_data_register(&data2, -1, (uintptr_t)NULL, sizeof(int));
+    }
+    else {
+        starpu_variable_data_register(&data1, -1, (uintptr_t)NULL, sizeof(int));
+        starpu_variable_data_register(&data2, STARPU_MAIN_RAM, (uintptr_t)blocs[1], sizeof(MatrixXd));
+    }
+    starpu_mpi_data_register(data1, 0, 0);
+    starpu_mpi_data_register(data2, 1, 1);
+
+
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl, STARPU_RW, data1, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl, STARPU_R, data1,STARPU_RW, data2,0);
+    return;
+
+
 }
 
 
