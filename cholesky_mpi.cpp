@@ -270,6 +270,9 @@ void cholesky(int n, int nb, int rank, int size) {
     LLT<Ref<MatrixXd>> llt(L);
     //cout<<"Ref:\n"<<L<<endl;
     MPI_Status status;
+
+
+   /*
    for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             if (jj<=ii)  {
@@ -302,6 +305,7 @@ void cholesky(int n, int nb, int rank, int size) {
     cout << "Error solve: " << error << endl;
     cout<<"rank "<<rank<<" finished....\n";
     }
+    */
 
 
     for (int ii=0; ii<nb; ii++) {
