@@ -290,10 +290,10 @@ void cholesky(int n, int nb, int rank, int size) {
     double error = (b - x).norm() / x.norm();
     cout << "Error solve: " << error << endl;
     cout<<"rank "<<rank<<" finished....\n";
-    */
+    
     }
     
-
+    */
 
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
