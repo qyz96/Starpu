@@ -322,7 +322,12 @@ void cholesky(int n, int nb, int rank, int size) {
 //Test
 int main(int argc, char **argv)
 {
-    starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+    int req = MPI_THREAD_MULTIPLE;
+    int prov = -1;
+
+    
+    starpu_mpi_init_conf(&argc, &argv, 0, MPI_COMM_WORLD, NULL);
+    MPI_Init_thread(NULL, NULL, req, &prov);
     int rank, size;
     starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
     starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
