@@ -255,7 +255,6 @@ void cholesky(int n, int nb, int rank, int size) {
     double end = starpu_timing_now();
 
 
-    printf("Elapsed time: %0.4f \n", (end-start)/1000000);
 
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
@@ -288,6 +287,7 @@ void cholesky(int n, int nb, int rank, int size) {
 
 
     if (rank==0) {
+        printf("Elapsed time: %0.4f \n", (end-start)/1000000);
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
