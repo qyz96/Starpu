@@ -178,7 +178,6 @@ void test(int rank)  {
     int nb=2;
     int n=2;
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
-    auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
     vector<MatrixXd*> blocs(nb*nb);
