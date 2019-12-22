@@ -322,7 +322,7 @@ void cholesky(int n, int nb, int rank, int size) {
 //Test
 int main(int argc, char **argv)
 {
-    int req = MPI_THREAD_MULTIPLE;
+    int req = MPI_THREAD_FUNNELED;
     int prov = -1;
 
     MPI_Init_thread(NULL, NULL, req, &prov);
