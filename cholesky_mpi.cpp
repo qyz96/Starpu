@@ -311,8 +311,6 @@ void cholesky(int n, int nb, int rank, int size) {
             starpu_data_unregister(dataA[ii+jj*nb]); 
         }
     }
-
-    MPI_Finalize();
 }
 
 
