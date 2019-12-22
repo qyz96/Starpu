@@ -63,7 +63,9 @@ void potrf(void *buffers[], void *cl_arg) {
 
 	//LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
-    //cout<<"A0 now is:\n"<<*A<<endl;
+    Map<MatrixXd> tt(A, 2, 2);
+
+    cout<<"A0 now is:\n"<<tt<<endl;
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
