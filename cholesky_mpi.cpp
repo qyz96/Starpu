@@ -272,7 +272,7 @@ void cholesky(int n, int nb, int rank, int size) {
     MPI_Status status;
 
 
-   /*
+   
    for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             if (jj<=ii)  {
@@ -305,7 +305,7 @@ void cholesky(int n, int nb, int rank, int size) {
     cout << "Error solve: " << error << endl;
     cout<<"rank "<<rank<<" finished....\n";
     }
-    */
+    
 
 
     for (int ii=0; ii<nb; ii++) {
