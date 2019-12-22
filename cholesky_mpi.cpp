@@ -334,8 +334,8 @@ int main(int argc, char **argv)
         nb = atoi(argv[2]);
     }
 
-    //cholesky(n,nb, rank, size);
-    test(rank);
+    cholesky(n,nb, rank, size);
+    //test(rank);
     starpu_mpi_shutdown();
     return 0;
 }
