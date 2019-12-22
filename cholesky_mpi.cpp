@@ -59,7 +59,7 @@ void potrf(void *buffers[], void *cl_arg) {
 
     MatrixXd *A= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
-    //cout<<"A0 now is:\n"<<*A<<endl;
+    cout<<"A0 now is:\n"<<*A<<endl;
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
