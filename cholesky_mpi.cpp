@@ -325,9 +325,8 @@ int main(int argc, char **argv)
     int req = MPI_THREAD_MULTIPLE;
     int prov = -1;
 
-    
-    starpu_mpi_init_conf(&argc, &argv, 0, MPI_COMM_WORLD, NULL);
     MPI_Init_thread(NULL, NULL, req, &prov);
+    starpu_mpi_init_conf(&argc, &argv, 0, MPI_COMM_WORLD, NULL);
     int rank, size;
     starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
     starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
