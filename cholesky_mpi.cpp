@@ -267,8 +267,6 @@ void cholesky(int n, int nb, int rank, int size) {
             }
         }
     }
-    LLT<Ref<MatrixXd>> llt(L);
-    //cout<<"Ref:\n"<<L<<endl;
     MPI_Status status;
 
 
@@ -304,6 +302,7 @@ void cholesky(int n, int nb, int rank, int size) {
     double error = (b - x).norm() / x.norm();
     cout << "Error solve: " << error << endl;
     cout<<"rank "<<rank<<" finished....\n";
+    
     }
     
 
