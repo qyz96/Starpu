@@ -58,8 +58,8 @@ struct starpu_codelet cl2 = {
 void potrf(void *buffers[], void *cl_arg) { 
 
     double *A= (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
-    int nx = STARPU_MATRIX_GET_NY(descr[1]);
-	int ny = STARPU_MATRIX_GET_NX(descr[1]);
+    int nx = STARPU_MATRIX_GET_NY(buffers[0]);
+	int ny = STARPU_MATRIX_GET_NX(buffers[0]);
 
 	//LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
