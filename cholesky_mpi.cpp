@@ -151,7 +151,7 @@ void test(int rank)  {
 
     starpu_data_unregister(data1);
     starpu_data_unregister(data2);
-    cout<<"*b is now equal to "<<*b<<"on rank "<<rank"\n";
+    cout<<"*b is now equal to "<<*b<<"on rank "<<rank<<"\n";
 
     /*
     int nb=2;
