@@ -72,11 +72,11 @@ void trsm(void *buffers[], void *cl_arg) {
 	MatrixXd *A0= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 	MatrixXd *A1= (MatrixXd *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     //auto L = A0->triangularView<Lower>().transpose();
-    cout<<*A0<<"\n"<<*A1<<"\n"<<endl;
+    //cout<<*A0<<"\n"<<*A1<<"\n"<<endl;
     //MatrixXd TT = *A1;
     //auto BB = L.solve<OnTheRight>(TT);
     
-	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
+	//cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, A0->rows(), A0->rows(), 1.0, A0->data(),A0->rows(), A1->data(), A0->rows());
     //printf("TRSM:%llx \n", task->tag_id);
   }
 struct starpu_codelet trsm_cl = {
