@@ -204,7 +204,7 @@ void cholesky(int n, int nb, int rank, int size) {
     vector<MatrixXd*> blocs(nb*nb);
     vector<starpu_data_handle_t> dataA(nb*nb);
 
-    cout<<"rank "<<rank<<" registering data....\n";
+    //cout<<"rank "<<rank<<" registering data....\n";
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
 
@@ -229,7 +229,7 @@ void cholesky(int n, int nb, int rank, int size) {
     MatrixXd* A=&B;
     //cout<<A->size()<<"\n";
     //Test
-    cout<<"rank "<<rank<<" inserting tasks....\n";
+    //cout<<"rank "<<rank<<" inserting tasks....\n";
     double start = starpu_timing_now();
     for (int kk = 0; kk < nb; ++kk) {
             starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*nb],0);
