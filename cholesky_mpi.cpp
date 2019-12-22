@@ -241,23 +241,7 @@ void cholesky(int n, int nb, int rank, int size) {
         }
     }
     
-    /* for (int kk = 0; kk < nb; ++kk) {
-        if ((kk+kk*nb)%size == rank) {
-            s_potrf(kk, dataA[kk+kk*nb]);
-        }
-        for (int ii = kk+1; ii < nb; ++ii) {
-            if ((ii+kk*nb)%size == rank) {
-            s_trsm(kk,ii,dataA[kk+kk*nb],dataA[ii+kk*nb]);
-            }
-            for (int jj=kk+1; jj < nb; ++jj) {         
-                if (jj <= ii) {
-                        if ((ii+jj*nb)%size == rank) {
-                        s_gemm(kk,ii,jj, dataA[ii+kk*nb],dataA[jj+kk*nb], dataA[ii+jj*nb]);
-                    }
-                }
-            }
-        }
-    } */
+
     starpu_task_wait_for_all();
     double end = starpu_timing_now();
 
@@ -281,13 +265,23 @@ void cholesky(int n, int nb, int rank, int size) {
 
    for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
-            starpu_data_unregister(dataA[ii+jj*nb]); 
+            if (jj<=ii)  {
+            if (rank==0) {starpu_mpi_irecv_detached(dataA[ii+jj*nb], rank, (ii+jj*nb)%size, MPI_COMM_WORLD, NULL, NULL);}
+            else if (rank==(ii+jj*nb)%size) {starpu_mpi_isend_detached(dataA[ii+jj*nb], 0, (ii+jj*nb)%size, MPI_COMM_WORLD, NULL, NULL);}
+            }
         }
     }
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
             free(blocs[ii+jj*nb]);
+        }
+    }
+
+
+    for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+            starpu_data_unregister(dataA[ii+jj*nb]); 
         }
     }
     auto L1=L.triangularView<Lower>();
