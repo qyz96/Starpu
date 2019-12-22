@@ -63,8 +63,8 @@ void potrf(void *buffers[], void *cl_arg) {
 
 	//LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
-    Map<MatrixXd> tt(A, nx, nx);
-    cout<<"POTRF: \n"<<tt<<"\n";
+    //Map<MatrixXd> tt(A, nx, nx);
+    //cout<<"POTRF: \n"<<tt<<"\n";
      }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
@@ -79,8 +79,8 @@ void trsm(void *buffers[], void *cl_arg) {
     int nx = STARPU_MATRIX_GET_NY(buffers[0]);
 	int ny = STARPU_MATRIX_GET_NX(buffers[0]);
 	cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, ny, ny, 1.0, A0, nx, A1, nx);
-    Map<MatrixXd> tt(A1, nx, nx);
-    cout<<"TRSM: \n"<<tt<<"\n";
+    //Map<MatrixXd> tt(A1, nx, nx);
+    //cout<<"TRSM: \n"<<tt<<"\n";
     //printf("TRSM:%llx \n", task->tag_id);
   }
 struct starpu_codelet trsm_cl = {
@@ -270,7 +270,7 @@ void cholesky(int n, int nb, int rank, int size) {
         }
     }
     LLT<Ref<MatrixXd>> llt(L);
-    cout<<"Ref:\n"<<L<<endl;
+    //cout<<"Ref:\n"<<L<<endl;
     MPI_Status status;
    for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
@@ -285,21 +285,16 @@ void cholesky(int n, int nb, int rank, int size) {
             }
         }
     }
+
+
+    if (rank==0) {
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
             L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
             free(blocs[ii+jj*nb]);
         }
     }
-
-
-    for (int ii=0; ii<nb; ii++) {
-        for (int jj=0; jj<nb; jj++) {
-            starpu_data_unregister(dataA[ii+jj*nb]); 
-        }
-    }
     auto L1=L.triangularView<Lower>();
-
     VectorXd x = VectorXd::Random(n * nb);
     VectorXd b = B*x;
     VectorXd bref = b;
@@ -308,6 +303,16 @@ void cholesky(int n, int nb, int rank, int size) {
     double error = (b - x).norm() / x.norm();
     cout << "Error solve: " << error << endl;
     cout<<"rank "<<rank<<" finished....\n";
+    }
+
+
+    for (int ii=0; ii<nb; ii++) {
+        for (int jj=0; jj<nb; jj++) {
+            starpu_data_unregister(dataA[ii+jj*nb]); 
+        }
+    }
+
+    MPI_Finalize();
 }
 
 
