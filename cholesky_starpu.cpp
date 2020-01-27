@@ -145,8 +145,7 @@ int main(int argc, char **argv)
     int prov = -1;
     starpu_init(NULL);
     int rank, size;
-    starpu_comm_rank(&rank);
-    starpu_comm_size(&size);
+
     if (rank==0) {
         printf("Running on %d CPU cores per rank,", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
         printf("and %d ranks in total\n", size);
