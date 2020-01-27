@@ -142,12 +142,11 @@ void cholesky(int n, int nb, int rank, int size) {
 //Test
 int main(int argc, char **argv)
 {
-    int req = MPI_THREAD_FUNNELED;
     int prov = -1;
     starpu_init(NULL);
     int rank, size;
-    starpu_comm_rank(MPI_COMM_WORLD, &rank);
-    starpu_comm_size(MPI_COMM_WORLD, &size);
+    starpu_comm_rank(&rank);
+    starpu_comm_size(&size);
     if (rank==0) {
         printf("Running on %d CPU cores per rank,", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
         printf("and %d ranks in total\n", size);
