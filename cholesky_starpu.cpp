@@ -109,7 +109,7 @@ void cholesky(int n, int nb, int rank, int size) {
             starpu_task_insert(&potrf_cl,STARPU_RW, dataA[kk+kk*nb],0);
         for (int ii = kk+1; ii < nb; ++ii) {
             starpu_task_insert(&trsm_cl,STARPU_R, dataA[kk+kk*nb],STARPU_RW, dataA[ii+kk*nb],0);
-            starpu_cache_flush(dataA[kk+kk*nb]);
+            //starpu_cache_flush(dataA[kk+kk*nb]);
             for (int jj=kk+1; jj < nb; ++jj) {         
                 if (jj <= ii) {
                     if (jj==ii) {
@@ -120,7 +120,7 @@ void cholesky(int n, int nb, int rank, int size) {
                     }
                 }
             }
-            starpu_cache_flush(dataA[ii+kk*nb]);
+            //starpu_cache_flush(dataA[ii+kk*nb]);
         }
     }
     
