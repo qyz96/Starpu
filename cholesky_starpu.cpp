@@ -93,9 +93,9 @@ void cholesky(int n, int nb, int rank, int size) {
     auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
+    starpu_init(NULL);
     vector<MatrixXd*> blocs(nb*nb);
     vector<starpu_data_handle_t> dataA(nb*nb);
-
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
                 blocs[ii+jj*nb]=new MatrixXd(n,n);
@@ -134,7 +134,7 @@ void cholesky(int n, int nb, int rank, int size) {
             starpu_data_unregister(dataA[ii+jj*nb]); 
         }
     }
-
+    starpu_shutdown();
 
 
 }
@@ -143,7 +143,6 @@ void cholesky(int n, int nb, int rank, int size) {
 int main(int argc, char **argv)
 {
     int prov = -1;
-    starpu_init(NULL);
     int rank, size;
     rank=0;
     if (rank==0) {
@@ -162,7 +161,6 @@ int main(int argc, char **argv)
     }
 
     cholesky(n,nb, rank, size);
-    //test(rank);
-    starpu_shutdown();
+
     return 0;
 }
