@@ -160,11 +160,11 @@ void cholesky(int n, int nb, int rank, int size, int test, int nrow, int ncol) {
                 if (jj<=ii)  {
                 int mpi_rank = block_2_rank(ii,jj);
                 if (rank==0 && rank!=mpi_rank) {
-                    MPI_Recv(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, mpi_rank, mpi_rank, MPI_COMM_WORLD, &status);
+                    MPI_Recv(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, mpi_rank, 0, MPI_COMM_WORLD, &status);
                     }
 
                 else if (rank==mpi_rank && rank != 0 ) {
-                    MPI_Send(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, 0, mpi_rank, MPI_COMM_WORLD);
+                    MPI_Send(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
                     }
                 }
             }
