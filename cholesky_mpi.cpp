@@ -93,20 +93,21 @@ struct starpu_codelet gemm_cl = {
 
 
 
-void cholesky(int n, int nb, int rank, int size) {
+void cholesky(int n, int nb, int rank, int size, int test, int nrow, int ncol) {
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     auto distrib = [&](int i, int j) { return  ((i+j*nb) % size == rank); };
     MatrixXd B=MatrixXd::NullaryExpr(n*nb,n*nb, val);
     MatrixXd L = B;
     vector<MatrixXd*> blocs(nb*nb);
     vector<starpu_data_handle_t> dataA(nb*nb);
+    auto block_2_rank = [&](int i, int j){return (i % nrow) * ncol + j % ncol;};
 
     for (int ii=0; ii<nb; ii++) {
         for (int jj=0; jj<nb; jj++) {
 
                 blocs[ii+jj*nb]=new MatrixXd(n,n);
                 *blocs[ii+jj*nb]=L.block(ii*n,jj*n,n,n);
-                int mpi_rank = ((ii+jj*nb)%size);
+                int mpi_rank = block_2_rank(ii,jj);
                 if (mpi_rank == rank) {
                     starpu_matrix_data_register(&dataA[ii+jj*nb], STARPU_MAIN_RAM, (uintptr_t)blocs[ii+jj*nb]->data(), n, n, n, sizeof(double));
                 }
@@ -152,42 +153,44 @@ void cholesky(int n, int nb, int rank, int size) {
         }
     }
 
-   /*
-   for (int ii=0; ii<nb; ii++) {
-        for (int jj=0; jj<nb; jj++) {
-            if (jj<=ii)  {
-            if (rank==0 && rank!=(ii+jj*nb)%size) {
-                MPI_Recv(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, (ii+jj*nb)%size, (ii+jj*nb)%size, MPI_COMM_WORLD, &status);
-                }
+   if (test)     
+   {
+    for (int ii=0; ii<nb; ii++) {
+            for (int jj=0; jj<nb; jj++) {
+                if (jj<=ii)  {
+                int mpi_rank = block_2_rank(ii,jj);
+                if (rank==0 && rank!=mpi_rank) {
+                    MPI_Recv(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, mpi_rank, mpi_rank, MPI_COMM_WORLD, &status);
+                    }
 
-            else if (rank==(ii+jj*nb)%size) {
-                MPI_Send(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, 0, (ii+jj*nb)%size, MPI_COMM_WORLD);
+                else if (rank==mpi_rank && rank != 0 ) {
+                    MPI_Send(blocs[ii+jj*nb]->data(), n*n, MPI_DOUBLE, 0, mpi_rank, MPI_COMM_WORLD);
+                    }
                 }
             }
         }
-    }
 
 
-    if (rank==0) {
-    for (int ii=0; ii<nb; ii++) {
-        for (int jj=0; jj<nb; jj++) {
-            L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
-            free(blocs[ii+jj*nb]);
+        if (rank==0) {
+        for (int ii=0; ii<nb; ii++) {
+            for (int jj=0; jj<nb; jj++) {
+                L.block(ii*n,jj*n,n,n)=*blocs[ii+jj*nb];
+                free(blocs[ii+jj*nb]);
+            }
         }
-    }
-    auto L1=L.triangularView<Lower>();
-    VectorXd x = VectorXd::Random(n * nb);
-    VectorXd b = B*x;
-    VectorXd bref = b;
-    L1.solveInPlace(b);
-    L1.transpose().solveInPlace(b);
-    double error = (b - x).norm() / x.norm();
-    cout << "Error solve: " << error << endl;
-    cout<<"rank "<<rank<<" finished....\n";
+        auto L1=L.triangularView<Lower>();
+        VectorXd x = VectorXd::Random(n * nb);
+        VectorXd b = B*x;
+        VectorXd bref = b;
+        L1.solveInPlace(b);
+        L1.transpose().solveInPlace(b);
+        double error = (b - x).norm() / x.norm();
+        cout << "Error solve: " << error << endl;
+        cout<<"rank "<<rank<<" finished....\n";
+        
+        }
     
-    }
-    
-    */
+   }
 
 }
 
@@ -212,6 +215,9 @@ int main(int argc, char **argv)
     }
     int n=10;
     int nb=1;
+    int test=0;
+    int nrow=1;
+    int ncol=1;
     if (argc >= 2)
     {
         n = atoi(argv[1]);
@@ -221,7 +227,17 @@ int main(int argc, char **argv)
         nb = atoi(argv[2]);
     }
 
-    cholesky(n,nb, rank, size);
+    if (argc >= 4) {
+        test = atoi(argv[3]);
+    }
+
+    if (argc >= 6) {
+        nrow = atoi(argv[4]);
+        ncol = atoi(argv[5]);
+
+    }
+    printf("Usage: ./cholesky_mpi n nb test nrow ncol\n");
+    cholesky(n,nb, rank, size, test, nrow, ncol);
     //test(rank);
     starpu_mpi_shutdown();
     MPI_Finalize();
