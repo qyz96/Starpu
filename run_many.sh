@@ -12,7 +12,7 @@ BLOCK_SIZE[4]=1024
     
 mpirun -n ${SLURM_NTASKS} hostname
 
-for i in {0..4}
+for i in 2
 do
 
     let NUM_BLOCKS=$((${MATRIX_SIZE}/${BLOCK_SIZE[i]}))
@@ -21,7 +21,7 @@ do
     echo ${BLOCK_SIZE[i]}
     echo ${NUM_BLOCKS}
     
-    STARPU_SCHED=${SCHED} mpirun -n ${SLURM_NTASKS} ./cholesky_mpi ${BLOCK_SIZE[i]} ${NUM_BLOCKS} ${TEST} ${NROWS} ${NCOLS}
+    OMP_NUM_THREADS=1 STARPU_SCHED=${SCHED} mpirun -n ${SLURM_NTASKS} ./cholesky_mpi ${BLOCK_SIZE[i]} ${NUM_BLOCKS} ${TEST} ${NROWS} ${NCOLS}
     echo "=================================="
 
 done

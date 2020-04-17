@@ -139,8 +139,8 @@ void cholesky(int block_size, int num_blocks, int rank, int size, int test, int 
     // Makes grep/import to excel easier ; just do
     // cat output | grep -P '\[0\]\>\>\>\>'
     // to extract rank 0 info
-    printf(">>>>rank,matrix_size,block_size,num_blocks,total_time\n");
-    printf("[%d]>>>>%d,%d,%d,%d,%e\n",rank,rank,matrix_size,block_size,num_blocks,(end-start)/1e6);
+    printf(">>>>rank,nranks,matrix_size,block_size,num_blocks,total_time\n");
+    printf("[%d]>>>>%d,%d,%d,%d,%d,%e\n",rank,rank,size,matrix_size,block_size,num_blocks,(end-start)/1e6);
 
     for (int ii=0; ii<num_blocks; ii++) {
         for (int jj=0; jj<num_blocks; jj++) {
