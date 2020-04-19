@@ -112,7 +112,7 @@ void cholesky(int block_size, int num_blocks, int rank, int size, int test, int 
             }
         }
     }
-
+    starpu_mpi_barrier(MPI_COMM_WORLD);
     double start = starpu_timing_now();
     for (int kk = 0; kk < num_blocks; ++kk) {
         starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*num_blocks],0);
@@ -134,6 +134,7 @@ void cholesky(int block_size, int num_blocks, int rank, int size, int test, int 
     }
     
     starpu_task_wait_for_all();
+    starpu_mpi_barrier(MPI_COMM_WORLD);
     double end = starpu_timing_now();
     int matrix_size = block_size * num_blocks;
     // Makes grep/import to excel easier ; just do
