@@ -14,28 +14,17 @@
 #include <Eigen/Cholesky>
 #include <mpi.h>
 
-
-#define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
-#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(j))))
-#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
-					| ((unsigned long long)(i)<<16)	\
-					| (unsigned long long)(j))))
-
 using namespace std;
 using namespace Eigen;
 
 void potrf(void *buffers[], void *cl_arg) { 
-
     double *A= (double *)STARPU_MATRIX_GET_PTR(buffers[0]);
     int nx = STARPU_MATRIX_GET_NY(buffers[0]);
     int ny = STARPU_MATRIX_GET_NX(buffers[0]);
-
-    //LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', A->rows(), A->data(), A->rows());
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
     //Map<MatrixXd> tt(A, nx, nx);
     //cout<<"POTRF: \n"<<tt<<"\n";
-     }
+}
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { potrf, NULL },
@@ -52,7 +41,7 @@ void trsm(void *buffers[], void *cl_arg) {
     //Map<MatrixXd> tt(A1, nx, nx);
     //cout<<"TRSM: \n"<<tt<<"\n";
     //printf("TRSM:%llx \n", task->tag_id);
-  }
+}
 struct starpu_codelet trsm_cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { trsm, NULL },
@@ -66,7 +55,7 @@ void syrk(void *buffers[], void *cl_arg) {
     int nx = STARPU_MATRIX_GET_NY(buffers[0]);
     int ny = STARPU_MATRIX_GET_NX(buffers[0]);
     cblas_dsyrk(CblasColMajor, CblasLower, CblasNoTrans, nx, nx, -1.0, A0, nx, 1.0, A1, nx);
- }
+}
 struct starpu_codelet syrk_cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { syrk, NULL },

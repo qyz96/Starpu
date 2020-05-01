@@ -4,15 +4,17 @@
 hostname
 lscpu
 
-BLOCK_SIZE[0]=64
-BLOCK_SIZE[1]=128
-BLOCK_SIZE[2]=256
-BLOCK_SIZE[3]=512
-BLOCK_SIZE[4]=1024
+BLOCK_SIZE[0]=32
+BLOCK_SIZE[1]=64
+BLOCK_SIZE[2]=128
+BLOCK_SIZE[3]=256
+BLOCK_SIZE[4]=512
+BLOCK_SIZE[5]=1024
+BLOCK_SIZE[6]=2048
     
 mpirun -n ${SLURM_NTASKS} hostname
 
-for i in 2
+for i in 3
 do
 
     let NUM_BLOCKS=$((${MATRIX_SIZE}/${BLOCK_SIZE[i]}))
@@ -21,7 +23,7 @@ do
     echo ${BLOCK_SIZE[i]}
     echo ${NUM_BLOCKS}
     
-    OMP_NUM_THREADS=1 STARPU_SCHED=${SCHED} mpirun -n ${SLURM_NTASKS} ./cholesky_mpi ${BLOCK_SIZE[i]} ${NUM_BLOCKS} ${TEST} ${NROWS} ${NCOLS}
+    STARPU_SCHED=${SCHED} mpirun -n ${SLURM_NTASKS} ./cholesky_mpi ${BLOCK_SIZE[i]} ${NUM_BLOCKS} ${TEST} ${NROWS} ${NCOLS}
     echo "=================================="
 
 done

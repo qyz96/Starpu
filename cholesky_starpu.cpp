@@ -1,9 +1,14 @@
 #include <starpu.h>
-#include<vector>
-#include<memory>
-#include<iostream>
+#include <vector>
+#include <memory>
+#include <iostream>
+#ifdef USE_MKL
+#include <mkl_cblas.h>
+#include <mkl_lapacke.h>
+#else
 #include <cblas.h>
 #include <lapacke.h>
+#endif
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
 
