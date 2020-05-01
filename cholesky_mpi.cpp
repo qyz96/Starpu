@@ -177,7 +177,7 @@ void cholesky(int block_size, int num_blocks, int rank, int size, int test, int 
 
 int main(int argc, char **argv)
 {
-    int req = MPI_THREAD_FUNNELED;
+    int req = MPI_THREAD_SERIALIZED;
     int prov = -1;
     MPI_Init_thread(NULL, NULL, req, &prov);
     starpu_mpi_init_conf(&argc, &argv, 0, MPI_COMM_WORLD, NULL);
