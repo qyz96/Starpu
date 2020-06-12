@@ -79,7 +79,7 @@ struct starpu_codelet gemm_cl = {
     .modes = { STARPU_R, STARPU_R, STARPU_RW }
 };
 
-void cholesky(int block_size, int num_blocks, int rank, int size, int test, int nrow, int ncol) {
+void cholesky(const int block_size, const int num_blocks, const int rank, const int size, const int test, const int nrow, const int ncol, const bool prune) {
     auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
     vector<MatrixXd*> blocks(num_blocks*num_blocks);
     vector<starpu_data_handle_t> dataA(num_blocks*num_blocks);
@@ -101,27 +101,69 @@ void cholesky(int block_size, int num_blocks, int rank, int size, int test, int 
             }
         }
     }
+
+    size_t ntasks = 0;
+    const double start_loop_overhead = starpu_timing_now();
+    for (int kk = 0; kk < num_blocks; ++kk) {
+        for (int ii = kk+1; ii < num_blocks; ++ii) {
+            for (int jj = kk+1; jj < num_blocks; ++jj) {
+                if (jj <= ii) ntasks++;
+            }
+        }
+    }
+    const double end_loop_overhead = starpu_timing_now();
+    const double t_overhead = (end_loop_overhead - start_loop_overhead)/1e6;
+    printf("++++ntasks=%zd,loop_overhead_time=%e\n", ntasks, t_overhead);
+
+    size_t num_pruned = 0;
     starpu_mpi_barrier(MPI_COMM_WORLD);
     double start = starpu_timing_now();
     for (int kk = 0; kk < num_blocks; ++kk) {
-        starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,STARPU_RW, dataA[kk+kk*num_blocks],0);
+        if( (!prune) || block_2_rank(kk,kk) == rank) {
+            starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,
+                STARPU_RW, dataA[kk+kk*num_blocks],
+            0);
+        } else {
+            num_pruned++;
+        }
         for (int ii = kk+1; ii < num_blocks; ++ii) {
-            starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,STARPU_R, dataA[kk+kk*num_blocks],STARPU_RW, dataA[ii+kk*num_blocks],0);
+            if( (!prune) || block_2_rank(kk,kk) == rank || block_2_rank(ii,kk) == rank) {
+                starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,
+                    STARPU_R,  dataA[kk+kk*num_blocks],
+                    STARPU_RW, dataA[ii+kk*num_blocks],
+                0);
+            } else {
+                num_pruned++;
+            }
             starpu_mpi_cache_flush(MPI_COMM_WORLD, dataA[kk+kk*num_blocks]);
-            for (int jj=kk+1; jj < num_blocks; ++jj) {
+            for (int jj = kk+1; jj < num_blocks; ++jj) {
                 if (jj <= ii) {
                     if (jj==ii) {
-                        starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, STARPU_R, dataA[ii+kk*num_blocks],STARPU_RW, dataA[ii+jj*num_blocks],0);
-                    }
-                    else {
-                        starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,STARPU_R, dataA[ii+kk*num_blocks],STARPU_R, dataA[jj+kk*num_blocks],STARPU_RW, dataA[ii+jj*num_blocks],0);
+                        if( (!prune) || block_2_rank(ii,kk) == rank || block_2_rank(ii,jj) == rank) {
+                            starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, 
+                                STARPU_R,  dataA[ii+kk*num_blocks],
+                                STARPU_RW, dataA[ii+jj*num_blocks],
+                            0);
+                        } else {
+                            num_pruned++;
+                        }
+                    } else {
+                        if( (!prune) || block_2_rank(ii,kk) == rank || block_2_rank(jj,kk) == rank || block_2_rank(ii,jj) == rank) {
+                            starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,
+                                STARPU_R,  dataA[ii+kk*num_blocks],
+                                STARPU_R,  dataA[jj+kk*num_blocks],
+                                STARPU_RW, dataA[ii+jj*num_blocks],
+                            0);
+                        } else {
+                            num_pruned++;
+                        }
                     }
                 }
             }
             starpu_mpi_cache_flush(MPI_COMM_WORLD, dataA[ii+kk*num_blocks]);
         }
     }
-    
+    double end_insertion = starpu_timing_now();
     starpu_task_wait_for_all();
     starpu_mpi_barrier(MPI_COMM_WORLD);
     double end = starpu_timing_now();
@@ -129,8 +171,8 @@ void cholesky(int block_size, int num_blocks, int rank, int size, int test, int 
     // Makes grep/import to excel easier ; just do
     // cat output | grep -P '\[0\]\>\>\>\>'
     // to extract rank 0 info
-    printf(">>>>rank,nranks,matrix_size,block_size,num_blocks,total_time\n");
-    printf("[%d]>>>>%d,%d,%d,%d,%d,%e\n",rank,rank,size,matrix_size,block_size,num_blocks,(end-start)/1e6);
+    printf(">>>>test,rank,nranks,matrix_size,block_size,num_blocks,total_time,insertion_time,prune,num_pruned,overhead_loop_time\n");
+    printf("[%d]>>>>chol_starpu,%d,%d,%d,%d,%d,%e,%e,%d,%zd,%e\n",rank,rank,size,matrix_size,block_size,num_blocks,(end-start)/1e6,(end_insertion-start)/1e6,prune,num_pruned,t_overhead);
 
     for (int ii=0; ii<num_blocks; ii++) {
         for (int jj=0; jj<num_blocks; jj++) {
@@ -193,6 +235,8 @@ int main(int argc, char **argv)
     int test=0;
     int nrow=1;
     int ncol=1;
+    bool prune = true;
+
     if (argc >= 2)
     {
         block_size = atoi(argv[1]);
@@ -210,14 +254,20 @@ int main(int argc, char **argv)
         nrow = atoi(argv[4]);
         ncol = atoi(argv[5]);
     }
+
+    if (argc >= 7) {
+        prune = atoi(argv[6]);
+    }
+
     assert(nrow * ncol == size);
-    printf("Usage: ./cholesky_mpi block_size num_blocks test nrow ncol\n");
+    printf("Usage: ./cholesky_mpi block_size num_blocks test nrow ncol prune\n");
     printf("block_size,%d\n",block_size);
     printf("num_blocks,%d\n",num_blocks);
     printf("test,%d\n",test);
     printf("nprocs_row,%d\n",nrow);
     printf("nprocs_col,%d\n",ncol);
-    cholesky(block_size, num_blocks, rank, size, test, nrow, ncol);
+    printf("prune,%d\n",prune);
+    cholesky(block_size, num_blocks, rank, size, test, nrow, ncol, prune);
     starpu_mpi_shutdown();
     MPI_Finalize();
     return 0;
