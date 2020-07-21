@@ -1,13 +1,25 @@
 #!/bin/bash
 
-NROWS=1 NCOLS=1 BLOCK_SIZE=256 NUM_BLOCKS=32  sbatch -c 32 -n 1 run_gemm_2d.sh
-NROWS=1 NCOLS=1 BLOCK_SIZE=256 NUM_BLOCKS=64  sbatch -c 32 -n 1 run_gemm_2d.sh
+PRUNE=0 NROWS=1 NCOLS=1 BLOCK_SIZE=256 NUM_BLOCKS=32  sbatch -c 32 -n 1 run_gemm_2d.sh
+PRUNE=0 NROWS=1 NCOLS=1 BLOCK_SIZE=256 NUM_BLOCKS=64  sbatch -c 32 -n 1 run_gemm_2d.sh
 
-NROWS=4 NCOLS=2 BLOCK_SIZE=256 NUM_BLOCKS=32  sbatch -c 32 -n 8 run_gemm_2d.sh
-NROWS=4 NCOLS=2 BLOCK_SIZE=256 NUM_BLOCKS=64  sbatch -c 32 -n 8 run_gemm_2d.sh
-NROWS=4 NCOLS=2 BLOCK_SIZE=256 NUM_BLOCKS=128 sbatch -c 32 -n 8 run_gemm_2d.sh
+PRUNE=0 NROWS=4 NCOLS=2 BLOCK_SIZE=256 NUM_BLOCKS=32  sbatch -c 32 -n 8 run_gemm_2d.sh
+PRUNE=0 NROWS=4 NCOLS=2 BLOCK_SIZE=256 NUM_BLOCKS=64  sbatch -c 32 -n 8 run_gemm_2d.sh
+PRUNE=0 NROWS=4 NCOLS=2 BLOCK_SIZE=256 NUM_BLOCKS=128 sbatch -c 32 -n 8 run_gemm_2d.sh
 
-NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=32  sbatch -c 32 -n 64 run_gemm_2d.sh
-NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=64  sbatch -c 32 -n 64 run_gemm_2d.sh
-NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=128 sbatch -c 32 -n 64 run_gemm_2d.sh
-NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=256 sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=32  sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=64  sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=128 sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=256 NUM_BLOCKS=256 sbatch -c 32 -n 64 run_gemm_2d.sh
+
+#
+# Blocksize plots
+#
+
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=32   NUM_BLOCKS=1024 sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=64   NUM_BLOCKS=512  sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=128  NUM_BLOCKS=256  sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=256  NUM_BLOCKS=128  sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=512  NUM_BLOCKS=64   sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=1024 NUM_BLOCKS=32   sbatch -c 32 -n 64 run_gemm_2d.sh
+PRUNE=0 NROWS=8 NCOLS=8 BLOCK_SIZE=2048 NUM_BLOCKS=16   sbatch -c 32 -n 64 run_gemm_2d.sh
