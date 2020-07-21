@@ -42,9 +42,9 @@ void gemm_2d(int block_size, int num_blocks, int rank, int nranks, int test, int
 
     starpu_mpi_barrier(MPI_COMM_WORLD);
     double start = starpu_timing_now();
-    for (int ii = 0; ii < num_blocks; ++ii) {
-        for (int jj = 0; jj < num_blocks; ++jj) {
-            for (int kk = 0; kk < num_blocks; ++kk) {
+    for (int kk = 0; kk < num_blocks; ++kk) {
+    	for (int ii = 0; ii < num_blocks; ++ii) {
+            for (int jj = 0; jj < num_blocks; ++jj) {
                 if(block_2_rank(ii,kk) == rank || block_2_rank(kk,jj) == rank || block_2_rank(ii,jj) == rank) {
                     starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,
                         STARPU_R, dataA[ii+kk*num_blocks],
@@ -66,8 +66,11 @@ void gemm_2d(int block_size, int num_blocks, int rank, int nranks, int test, int
     // Makes grep/import to excel easier ; just do
     // cat output | grep -P '\[0\]\>\>\>\>'
     // to extract rank 0 info
-    printf(">>>>test,rank,nranks,matrix_size,block_size,num_blocks,total_time\n");
-    printf("[%d]>>>>gemm_2d_starpu,%d,%d,%d,%d,%d,%e\n",rank,rank,nranks,matrix_size,block_size,num_blocks,(end-start)/1e6);
+    const int ncores = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+    long long int flops_per_rank = ((long long int)matrix_size) * ((long long int)matrix_size) * ((long long int)matrix_size) / ((long long int)nranks);
+    long long int flops_per_core = flops_per_rank / ((long long int)ncores);
+    printf(">>>>test,rank,nranks,n_cores,matrix_size,block_size,num_blocks,total_time,flops_per_rank,flops_per_core\n");
+    printf("[%d]>>>>gemm_2d_starpu %d %d %d %d %d %d %e %llu %llu\n",rank,rank,nranks,ncores,matrix_size,block_size,num_blocks,(end-start)/1e6,flops_per_rank,flops_per_core);
 
     for (int ii=0; ii<num_blocks; ii++) {
         for (int jj=0; jj<num_blocks; jj++) {

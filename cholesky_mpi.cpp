@@ -84,6 +84,7 @@ void cholesky(const int block_size, const int num_blocks, const int rank, const 
     vector<MatrixXd*> blocks(num_blocks*num_blocks);
     vector<starpu_data_handle_t> dataA(num_blocks*num_blocks);
     auto block_2_rank = [&](int i, int j){return (i % nrow) * ncol + j % ncol;};
+    const int ncores = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
 
     for (int ii=0; ii<num_blocks; ii++) {
         for (int jj=0; jj<num_blocks; jj++) {
@@ -171,8 +172,8 @@ void cholesky(const int block_size, const int num_blocks, const int rank, const 
     // Makes grep/import to excel easier ; just do
     // cat output | grep -P '\[0\]\>\>\>\>'
     // to extract rank 0 info
-    printf(">>>>test,rank,nranks,matrix_size,block_size,num_blocks,total_time,insertion_time,prune,num_pruned,overhead_loop_time\n");
-    printf("[%d]>>>>chol_starpu,%d,%d,%d,%d,%d,%e,%e,%d,%zd,%e\n",rank,rank,size,matrix_size,block_size,num_blocks,(end-start)/1e6,(end_insertion-start)/1e6,prune,num_pruned,t_overhead);
+    printf(">>>>test,rank,nranks,ncores,matrix_size,block_size,num_blocks,total_time,insertion_time,prune,num_pruned,overhead_loop_time\n");
+    printf("[%d]>>>>chol_starpu,%d,%d,%d,%d,%d,%d,%e,%e,%d,%zd,%e\n",rank,rank,size,ncores,matrix_size,block_size,num_blocks,(end-start)/1e6,(end_insertion-start)/1e6,prune,num_pruned,t_overhead);
 
     for (int ii=0; ii<num_blocks; ii++) {
         for (int jj=0; jj<num_blocks; jj++) {
