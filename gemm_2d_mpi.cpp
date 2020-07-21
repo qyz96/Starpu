@@ -5,6 +5,14 @@ using namespace Eigen;
 
 void gemm_2d(int block_size, int num_blocks, int rank, int nranks, int test, int nrow, int ncol) {
     
+    // Warmup MKL
+    Eigen::MatrixXd A = Eigen::MatrixXd::Identity(256,256);
+    Eigen::MatrixXd B = Eigen::MatrixXd::Identity(256,256);
+    Eigen::MatrixXd C = Eigen::MatrixXd::Identity(256,256);
+    for(int i = 0; i < 10; i++) {
+        cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 256, 256, 256, 1.0, A.data(), 256, B.data(), 256, 1.0, C.data(), 256);
+    }
+    
     vector<MatrixXd*> blocksA(num_blocks*num_blocks);
     vector<MatrixXd*> blocksB(num_blocks*num_blocks);
     vector<MatrixXd*> blocksC(num_blocks*num_blocks);
