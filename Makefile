@@ -6,10 +6,7 @@ LFLAGS   = -lpthread -L${HOME}/Softwares/hwloc-2.2.0/install/lib -L${HOME}/Softw
 
 .PHONY: clean all
 
-all: cholesky_starpu cholesky_mpi gemm_2d_mpi
-
-cholesky_starpu: cholesky_starpu.cpp
-	$(MPICC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LFLAGS)
+all: cholesky_mpi gemm_2d_mpi
 
 cholesky_mpi: cholesky_mpi.cpp
 	$(MPICC) $(CFLAGS) -o $@ $^ $(INCLUDE) $(LFLAGS)
