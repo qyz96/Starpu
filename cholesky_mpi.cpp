@@ -22,8 +22,6 @@ void potrf(void *buffers[], void *cl_arg) {
     int nx = STARPU_MATRIX_GET_NY(buffers[0]);
     int ny = STARPU_MATRIX_GET_NX(buffers[0]);
     LAPACKE_dpotrf(LAPACK_COL_MAJOR, 'L', nx, A, ny);
-    //Map<MatrixXd> tt(A, nx, nx);
-    //cout<<"POTRF: \n"<<tt<<"\n";
 }
 struct starpu_codelet potrf_cl = {
     .where = STARPU_CPU,
@@ -38,9 +36,6 @@ void trsm(void *buffers[], void *cl_arg) {
     int nx = STARPU_MATRIX_GET_NY(buffers[0]);
     int ny = STARPU_MATRIX_GET_NX(buffers[0]);
     cblas_dtrsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit, ny, ny, 1.0, A0, nx, A1, nx);
-    //Map<MatrixXd> tt(A1, nx, nx);
-    //cout<<"TRSM: \n"<<tt<<"\n";
-    //printf("TRSM:%llx \n", task->tag_id);
 }
 struct starpu_codelet trsm_cl = {
     .where = STARPU_CPU,
@@ -70,7 +65,6 @@ void gemm(void *buffers[], void *cl_arg) {
     int nx = STARPU_MATRIX_GET_NY(buffers[0]);
     int ny = STARPU_MATRIX_GET_NX(buffers[0]);
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, nx, nx, ny, -1.0,A0, nx, A1, nx, 1.0, A2, nx);
-    //printf("GEMM:%llx \n", task->tag_id);
   }
 struct starpu_codelet gemm_cl = {
     .where = STARPU_CPU,
@@ -80,11 +74,26 @@ struct starpu_codelet gemm_cl = {
 };
 
 void cholesky(const int block_size, const int num_blocks, const int rank, const int size, const int test, const int nrow, const int ncol, const bool prune) {
-    auto val = [&](int i, int j) { return  1/(float)((i-j)*(i-j)+1); };
+    auto val = [&](int i, int j) { return  1.0/(double)((i-j)*(i-j)+1.0); };
     vector<MatrixXd*> blocks(num_blocks*num_blocks);
     vector<starpu_data_handle_t> dataA(num_blocks*num_blocks);
     auto block_2_rank = [&](int i, int j){return (i % nrow) * ncol + j % ncol;};
     const int ncores = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+    
+    {
+        size_t ntasks = 0;
+        const double start_loop_overhead = starpu_timing_now();
+        for (int kk = 0; kk < num_blocks; ++kk) {
+            for (int ii = kk+1; ii < num_blocks; ++ii) {
+                for (int jj = kk+1; jj < num_blocks; ++jj) {
+                    if (jj <= ii) ntasks++;
+                }
+            }
+        }
+        const double end_loop_overhead = starpu_timing_now();
+        const double t_overhead = (end_loop_overhead - start_loop_overhead)/1e6;
+        printf("++++ntasks=%zd,loop_overhead_time=%e\n", ntasks, t_overhead);
+    }
 
     for (int ii=0; ii<num_blocks; ii++) {
         for (int jj=0; jj<num_blocks; jj++) {
@@ -93,6 +102,18 @@ void cholesky(const int block_size, const int num_blocks, const int rank, const 
             if (mpi_rank == rank) {
                 auto val_block = [&](int i, int j) { return val(ii*block_size+i,jj*block_size+j); };
                 *blocks[ii+jj*num_blocks] = MatrixXd::NullaryExpr(block_size, block_size, val_block);
+            }
+        }
+    }
+
+    size_t num_pruned = 0;
+    starpu_mpi_barrier(MPI_COMM_WORLD);
+    double start = starpu_timing_now();
+
+    for (int ii=0; ii<num_blocks; ii++) {
+        for (int jj=0; jj<num_blocks; jj++) {
+            int mpi_rank = block_2_rank(ii,jj);
+            if (mpi_rank == rank) {
                 starpu_matrix_data_register(&dataA[ii+jj*num_blocks], STARPU_MAIN_RAM, (uintptr_t)blocks[ii+jj*num_blocks]->data(), block_size, block_size, block_size, sizeof(double));
             } else {
                 starpu_matrix_data_register(&dataA[ii+jj*num_blocks], -1, (uintptr_t)NULL, block_size, block_size, block_size, sizeof(double));
@@ -103,23 +124,8 @@ void cholesky(const int block_size, const int num_blocks, const int rank, const 
         }
     }
 
-    size_t ntasks = 0;
-    const double start_loop_overhead = starpu_timing_now();
     for (int kk = 0; kk < num_blocks; ++kk) {
-        for (int ii = kk+1; ii < num_blocks; ++ii) {
-            for (int jj = kk+1; jj < num_blocks; ++jj) {
-                if (jj <= ii) ntasks++;
-            }
-        }
-    }
-    const double end_loop_overhead = starpu_timing_now();
-    const double t_overhead = (end_loop_overhead - start_loop_overhead)/1e6;
-    printf("++++ntasks=%zd,loop_overhead_time=%e\n", ntasks, t_overhead);
-
-    size_t num_pruned = 0;
-    starpu_mpi_barrier(MPI_COMM_WORLD);
-    double start = starpu_timing_now();
-    for (int kk = 0; kk < num_blocks; ++kk) {
+        // POTRF
         if( (!prune) || block_2_rank(kk,kk) == rank) {
             starpu_mpi_task_insert(MPI_COMM_WORLD,&potrf_cl,
                 STARPU_RW, dataA[kk+kk*num_blocks],
@@ -127,7 +133,9 @@ void cholesky(const int block_size, const int num_blocks, const int rank, const 
         } else {
             num_pruned++;
         }
+
         for (int ii = kk+1; ii < num_blocks; ++ii) {
+            // TRSM
             if( (!prune) || block_2_rank(kk,kk) == rank || block_2_rank(ii,kk) == rank) {
                 starpu_mpi_task_insert(MPI_COMM_WORLD,&trsm_cl,
                     STARPU_R,  dataA[kk+kk*num_blocks],
@@ -137,43 +145,44 @@ void cholesky(const int block_size, const int num_blocks, const int rank, const 
                 num_pruned++;
             }
             starpu_mpi_cache_flush(MPI_COMM_WORLD, dataA[kk+kk*num_blocks]);
-            for (int jj = kk+1; jj < num_blocks; ++jj) {
-                if (jj <= ii) {
-                    if (jj==ii) {
-                        if( (!prune) || block_2_rank(ii,kk) == rank || block_2_rank(ii,jj) == rank) {
-                            starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, 
-                                STARPU_R,  dataA[ii+kk*num_blocks],
-                                STARPU_RW, dataA[ii+jj*num_blocks],
-                            0);
-                        } else {
-                            num_pruned++;
-                        }
-                    } else {
-                        if( (!prune) || block_2_rank(ii,kk) == rank || block_2_rank(jj,kk) == rank || block_2_rank(ii,jj) == rank) {
-                            starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,
-                                STARPU_R,  dataA[ii+kk*num_blocks],
-                                STARPU_R,  dataA[jj+kk*num_blocks],
-                                STARPU_RW, dataA[ii+jj*num_blocks],
-                            0);
-                        } else {
-                            num_pruned++;
-                        }
-                    }
+
+            // SYRK
+            if( (!prune) || block_2_rank(ii,kk) == rank ) {
+                starpu_mpi_task_insert(MPI_COMM_WORLD,&syrk_cl, 
+                    STARPU_R,  dataA[ii+kk*num_blocks],
+                    STARPU_RW, dataA[ii+ii*num_blocks],
+                0);
+            } else {
+                num_pruned++;
+            }
+
+            for (int jj = kk+1; jj < ii; ++jj) {
+                // GEMM
+                if( (!prune) || block_2_rank(ii,kk) == rank || block_2_rank(jj,kk) == rank || block_2_rank(ii,jj) == rank) {
+                    starpu_mpi_task_insert(MPI_COMM_WORLD,&gemm_cl,
+                        STARPU_R,  dataA[ii+kk*num_blocks],
+                        STARPU_R,  dataA[jj+kk*num_blocks],
+                        STARPU_RW, dataA[ii+jj*num_blocks],
+                    0);
+                } else {
+                    num_pruned++;
                 }
             }
             starpu_mpi_cache_flush(MPI_COMM_WORLD, dataA[ii+kk*num_blocks]);
         }
     }
+
     double end_insertion = starpu_timing_now();
     starpu_task_wait_for_all();
     starpu_mpi_barrier(MPI_COMM_WORLD);
     double end = starpu_timing_now();
+
     int matrix_size = block_size * num_blocks;
     // Makes grep/import to excel easier ; just do
     // cat output | grep -P '\[0\]\>\>\>\>'
     // to extract rank 0 info
-    printf(">>>>test,rank,nranks,ncores,matrix_size,block_size,num_blocks,total_time,insertion_time,prune,num_pruned,overhead_loop_time\n");
-    printf("[%d]>>>>chol_starpu,%d,%d,%d,%d,%d,%d,%e,%e,%d,%zd,%e\n",rank,rank,size,ncores,matrix_size,block_size,num_blocks,(end-start)/1e6,(end_insertion-start)/1e6,prune,num_pruned,t_overhead);
+    printf(">>>>test rank nranks ncores matrix_size block_size num_blocks total_time insertion_time prune num_pruned\n");
+    printf("[%d]>>>>chol_starpu %d %d %d %d %d %d %e %e %d %zd\n",rank,rank,size,ncores,matrix_size,block_size,num_blocks,(end-start)/1e6,(end_insertion-start)/1e6,prune,num_pruned);
 
     for (int ii=0; ii<num_blocks; ii++) {
         for (int jj=0; jj<num_blocks; jj++) {
